@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="dsp">DSP</string>
+    <string name="app_name">DSP Benchmarking</string>
+    <string name="quit">Sair</string>
+    <string name="toggle_dsp">Ativar o DSP</string>
+    <string name="mean_sample_write_time">Mean sample write time:</string>
+    <string name="mean_sample_retrieve_time">Mean sample retrieve time:</string>
+    <string name="mean_dsp_cycle_time">Mean DSP cycle time:</string>
+    <string name="cpu_usage">CPU usage:</string>
+    <string name="dsp_cycle_time_processing">Period of DSP cycle used with processing:</string>
+    <string name="dsp_block_64">64</string>
+    <string name="dsp_block_128">128</string>
+    <string name="dsp_block_256">256</string>
+    <string name="dsp_block_512">512</string>
+    <string name="dsp_block_size">DSP block size:</string>
+    <string name="dsp_block_1">1</string>
+    <string name="dsp_period">DSP period:</string>
+    <string name="dsp_cycles">DSP cycles:</string>
+
+</resources>
