@@ -20,6 +20,7 @@ public class SystemWatchThread extends Thread {
 	Handler mHandler;
 	int total;
 	private int cpuUsage;
+	
 
 	// Constructor with an argument that specifies Handler on main thread
 	// to which messages will be sent by this thread.

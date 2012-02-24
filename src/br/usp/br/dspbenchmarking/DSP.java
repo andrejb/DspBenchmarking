@@ -29,14 +29,17 @@ public class DSP extends Activity {
 	private CheckBox c;
 	private ProgressBar cpuUsageBar;
 	private TextView dspBlockSizeView = null;
-	private TextView sampleRetrieveTimeView = null;
+	private TextView sampleReadTimeView = null;
 	private TextView sampleWriteTimeView = null;
 	private TextView dspCycleTimeView = null;
 	private ProgressBar dspCycleTimeBar = null;
 	private TextView dspPeriodView = null;
 	private TextView dspCyclesView = null;
+	private TextView readCyclesView = null;
 	private TextView callbackPeriodView = null;
 	private Spinner algorithmView = null;
+	private TextView elapsedTimeView = null;
+
 
 	/************************************************************************
 	 * onCreate Calles when the activity is first created.
@@ -47,22 +50,24 @@ public class DSP extends Activity {
 		setContentView(R.layout.dsp);
 		cpuUsageBar = (ProgressBar) findViewById(R.id.cpu_usage);
 		dspBlockSizeView = (TextView) findViewById(R.id.dspBlockSizeValue);
-		sampleRetrieveTimeView = (TextView) findViewById(R.id.meanSampleRetrieveTimeValue);
+		sampleReadTimeView = (TextView) findViewById(R.id.meanSampleReadTimeValue);
 		sampleWriteTimeView = (TextView) findViewById(R.id.meanSampleWriteTimeValue);
 		dspCycleTimeView = (TextView) findViewById(R.id.meanDspCycleTimeValue);
 		dspCycleTimeBar = (ProgressBar) findViewById(R.id.dspCycleBar);
 		dspPeriodView = (TextView) findViewById(R.id.dspPeriodValue);
 		dspCyclesView = (TextView) findViewById(R.id.dspCyclesValue);
+		readCyclesView = (TextView) findViewById(R.id.readCyclesValue);
 		callbackPeriodView = (TextView) findViewById(R.id.callbackPeriodValue);
+		elapsedTimeView = (TextView) findViewById(R.id.elapsedTimeValue);
 
 		// Init algorithms list
-		/*algorithmView = (Spinner) findViewById(R.id.algorithm);
+		algorithmView = (Spinner) findViewById(R.id.algorithm);
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
 				this, R.array.algorithm_array,
 				android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		algorithmView.setAdapter(adapter);
-		algorithmView.setOnItemSelectedListener(new AlgorithmListener());*/
+		algorithmView.setOnItemSelectedListener(new AlgorithmListener());
 
 		// radio buttons listener
 		RadioButton rb;
@@ -76,6 +81,10 @@ public class DSP extends Activity {
 		rb.setOnClickListener(dspRadioListener);
 		rb = (RadioButton) findViewById(R.id.radioDsp512);
 		rb.setOnClickListener(dspRadioListener);
+		
+		// This thread updates the screen with new info every 1 second.
+		swt = new SystemWatchThread(mHandler);
+		swt.start();
 
 	}
 
@@ -90,7 +99,7 @@ public class DSP extends Activity {
 			if (dt != null) {
 				dspBlockSizeView.setText(Long.toString(dt.getBlockSize())); // block
 																			// size
-				sampleRetrieveTimeView.setText(String.format("%.6f",
+				sampleReadTimeView.setText(String.format("%.6f",
 						dt.getSampleReadMeanTime())); // read mean time
 				sampleWriteTimeView.setText(String.format("%.6f",
 						dt.getSampleWriteMeanTime())); // write mean time
@@ -99,13 +108,13 @@ public class DSP extends Activity {
 				dspPeriodView
 						.setText(String.format("%.6f", dt.getBlockPeriod())); // Block
 																				// period
-				dspCyclesView.setText(Long.toString(dt.getCallbackTicks())); // #
-																				// of
-																				// DSP
-																				// cycles
+				dspCyclesView.setText(Long.toString(dt.getCallbackTicks())); // # of DSP cycles
+				readCyclesView.setText(Long.toString(dt.getReadTicks())); // # of read ticks
+
 				callbackPeriodView.setText(String.format("%.6f",
 						dt.getCallbackPeriodMeanTime())); // callback period
 															// mean time
+				elapsedTimeView.setText(String.format("%.6f", dt.getElapsedTime()));
 
 				// Progress Bars
 				if (swt != null)
@@ -127,16 +136,14 @@ public class DSP extends Activity {
 
 		if (c.isChecked()) {
 			// Threads
-			swt = new SystemWatchThread(mHandler);
 			dt = new DSPThread(blockSize);
-			swt.start();
 			dt.start();
 			// mProgressStatus = (int) readUsage() * 100;
 		} else {
 			try {
-				swt.stopRunning();
+				//swt.stopRunning();
 				dt.stopRunning();
-				swt = null;
+				//swt = null;
 				dt = null;
 			} catch (SecurityException e) {
 				e.printStackTrace();
@@ -183,7 +190,7 @@ public class DSP extends Activity {
 	 * Restarts DSP with new parameters.
 	 ***********************************************************************/
 	private void restartDSP() {
-		if (c != null)
+		/*if (c != null)
 			if (c.isChecked()) {
 				toggleDSP(null);
 				try {
@@ -191,7 +198,7 @@ public class DSP extends Activity {
 				} catch (Exception e) {
 				}
 				toggleDSP(null);
-			}
+			}*/
 	}
 
 }

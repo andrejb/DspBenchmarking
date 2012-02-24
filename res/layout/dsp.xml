@@ -11,7 +11,7 @@
         <LinearLayout
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical" >
 
             <LinearLayout
@@ -50,7 +50,7 @@
                         android:id="@+id/textView12"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="):"
+                        android:text="):  "
                         android:textAppearance="?android:attr/textAppearanceLarge" />
 
                 </LinearLayout>
@@ -92,6 +92,25 @@
                         android:text="@string/dsp_block_512" />
                 </RadioGroup>
 
+          		<LinearLayout
+                    android:id="@+id/linearLayout10"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content" >
+
+                    <TextView
+                        android:id="@+id/textView9"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/elapsed_time" />
+
+                    <TextView
+                        android:id="@+id/elapsedTimeValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/float_0"
+                        android:textAppearance="?android:attr/textAppearanceLarge" />
+                </LinearLayout>
+                
                 <LinearLayout
                     android:id="@+id/linearLayout4"
                     android:layout_width="fill_parent"
@@ -107,8 +126,28 @@
                         android:id="@+id/dspCyclesValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0"
+                        android:text="@string/int_0"
                         android:textAppearance="?android:attr/textAppearanceLarge" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/linearLayout9"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content" >
+
+                    <TextView
+                        android:id="@+id/textView13"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/read_cycles" />
+
+                    <TextView
+                        android:id="@+id/readCyclesValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/int_0"
+                        android:textAppearance="?android:attr/textAppearanceLarge" />
+
                 </LinearLayout>
 
                 <LinearLayout
@@ -120,13 +159,13 @@
                         android:id="@+id/textView1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/mean_sample_retrieve_time" />
+                        android:text="@string/mean_sample_read_time" />
 
                     <TextView
-                        android:id="@+id/meanSampleRetrieveTimeValue"
+                        android:id="@+id/meanSampleReadTimeValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0.00"
+                        android:text="@string/float_0"
                         android:textAppearance="?android:attr/textAppearanceLarge" />
                 </LinearLayout>
 
@@ -145,7 +184,7 @@
                         android:id="@+id/meanSampleWriteTimeValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0.00"
+                        android:text="@string/float_0"
                         android:textAppearance="?android:attr/textAppearanceLarge" />
                 </LinearLayout>
 
@@ -164,7 +203,7 @@
                         android:id="@+id/meanDspCycleTimeValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0.00"
+                        android:text="@string/float_0"
                         android:textAppearance="?android:attr/textAppearanceLarge" />
                 </LinearLayout>
 
@@ -184,7 +223,7 @@
                         android:id="@+id/dspPeriodValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0.00"
+                        android:text="@string/float_0"
                         android:textAppearance="?android:attr/textAppearanceLarge" />
                 </LinearLayout>
 
@@ -203,7 +242,7 @@
                         android:id="@+id/callbackPeriodValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0.00"
+                        android:text="@string/float_0"
                         android:textAppearance="?android:attr/textAppearanceLarge" />
                 </LinearLayout>
 

@@ -33,6 +33,9 @@ public class DSPThread extends Thread {
 		private long callbackPeriod = 0; // the sum of the actual periods of callback calling
 		private long readTicks = 0; // the amount of times we read from the buffer
 		private long callbackTicks = 0; // the amount of time we ran the DSP callback
+		private long elapsedTime = 0;
+		
+		private long startTime;
 
 
 		DSPThread(int newBlockSize) {
@@ -57,6 +60,18 @@ public class DSPThread extends Thread {
 	    			callbackPeriod += (startTime - lastListenerStartTime);
 	    		lastListenerStartTime = startTime;
 	    		callbackTicks++;
+
+	    		
+	    		
+	    		//int delayMilliseconds = 250; // half a second
+	    		//int delaySamples = (int)((float)delayMilliseconds * sampleRate / 1000); // assumes 44100 Hz sample rate
+	    		//float decay = 0.5f;
+	    		//for (int i = 0; i < blockSize - delaySamples; i++)
+	    		//{
+	    		//    // WARNING: overflow potential
+	    		//    buffers[jx % buffers.length][i+delaySamples] = 0;//(short)((float)buffers[jx][i] * decay);
+	    		//}
+
 	    		
 	    		// Write to the system buffer.
 	    		long timed1, timed2;
@@ -65,6 +80,9 @@ public class DSPThread extends Thread {
 				timed2 = SystemClock.uptimeMillis();
 				sampleWriteTime += (timed2 - timed1);
 				dspCycleTime += (timed2 - startTime);
+	    		
+	    		//if (callbackTicks == 1000)
+	    		//	stopRunning();
 	    	}
 			public void onMarkerReached(AudioRecord recorder) {
 	    	} 
@@ -118,13 +136,14 @@ public class DSPThread extends Thread {
 				track.play();
 
 
-				
+				startTime = SystemClock.uptimeMillis();
 				while (isRunning) {
 					readTicks++;
 					//timed1 = SystemClock.uptimeMillis();
 
 					short[] buffer = buffers[ix++ % buffers.length];
 
+					
 					times1 = SystemClock.uptimeMillis();
 					// Log.i("Map", "Writing new data to buffer");
 					N = recorder.read(buffer, 0, blockSize);
@@ -139,6 +158,9 @@ public class DSPThread extends Thread {
 					//timed2 = SystemClock.uptimeMillis();
 					//dspCycleTime += (timed2 - timed1);
 					// sleep until next DSP cycle
+					elapsedTime = SystemClock.uptimeMillis() - startTime;
+					//if (elapsedTime > (100000.0 * (float) blockSize / sampleRate))
+					//	stopRunning();
 				}
 				releaseIO();
 			} catch (Throwable x) {
@@ -228,4 +250,10 @@ public class DSPThread extends Thread {
 			return ((float) blockSize) /  sampleRate * 100;
 		}
 		
+		
+		// accessor
+		public float getElapsedTime()
+		{
+		  return (float) elapsedTime;
+		}
 }
