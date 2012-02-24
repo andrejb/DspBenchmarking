@@ -9,14 +9,22 @@
     <string name="mean_sample_retrieve_time">Mean sample retrieve time:</string>
     <string name="mean_dsp_cycle_time">Mean DSP cycle time:</string>
     <string name="cpu_usage">CPU usage:</string>
-    <string name="dsp_cycle_time_processing">Period of DSP cycle used with processing:</string>
+    <string name="dsp_cycle_time_processing">Amount of DSP cycle used with processing:</string>
     <string name="dsp_block_64">64</string>
     <string name="dsp_block_128">128</string>
     <string name="dsp_block_256">256</string>
     <string name="dsp_block_512">512</string>
-    <string name="dsp_block_size">DSP block size:</string>
+    <string name="dsp_block_size">DSP block size (</string>
     <string name="dsp_block_1">1</string>
     <string name="dsp_period">DSP period:</string>
     <string name="dsp_cycles">DSP cycles:</string>
-
+    <string name="callback_period">Callback period:</string>
+    <string name="algorithm">Algorithm:</string>
+    <string name="reverb">Reverb</string>
+    
+    <string-array name="algorithm_array">
+        <item>Reverb</item>
+        <item>FFT</item>
+    </string-array>
+    
 </resources>
