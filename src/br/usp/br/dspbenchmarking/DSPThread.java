@@ -14,17 +14,19 @@ import android.util.Log;
  ***********************************************************************/
 public class DSPThread extends Thread {
 	
-		// Class constants defining state of the thread
+		// Class variable defining state of the thread
 		private boolean isRunning = false;
 
 		// Handler mHandler;
-
+		
+		// Audio variables
 		AudioRecord recorder = null;
 		AudioTrack track = null;
 		short[][] buffers = new short[256][512];
 		int ix = 0;
 		int jx = 0;
 
+		// Time tracking variables
 		private long sampleReadTime = 0;  // the sum of the times needed to read samples
 		private long sampleWriteTime = 0; // the sum of the time needed to write samples
 		private long dspCycleTime = 0; // the sum of dsp cycle times 
@@ -34,15 +36,26 @@ public class DSPThread extends Thread {
 		private long readTicks = 0; // the amount of times we read from the buffer
 		private long callbackTicks = 0; // the amount of time we ran the DSP callback
 		private long elapsedTime = 0;
-		
+		private DSPAlgorithm dspAlgorithm;
 		private long startTime;
+		
+		// DSP parameters
+		private double parameter1;
 
 
-		DSPThread(int newBlockSize) {
+		DSPThread(int bSize, int algorithm) {
 			// sets higher priority for real time purposes
 			android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-			blockSize = newBlockSize;
+			blockSize = bSize;
+			
+			// set the DSP algorithm
+			if (algorithm == 0)
+				dspAlgorithm = new Loopback(sampleRate, blockSize);
+			else if (algorithm == 1)
+				dspAlgorithm = new Reverb(sampleRate, blockSize);
+			this.setParams(parameter1);
 		}
+		
 		
 		// -------------------------------------------------------------------
 		//  ____  ____  ____
@@ -54,6 +67,8 @@ public class DSPThread extends Thread {
 		AudioRecord.OnRecordPositionUpdateListener dspCallback = new AudioRecord.OnRecordPositionUpdateListener() {
 	    	private long lastListenerStartTime = 0;
 			public void onPeriodicNotification(AudioRecord recorder) {
+	    		long time1;
+				
 	    		// Takes note of time between listeners
 	    		long startTime = SystemClock.uptimeMillis();
 	    		if (lastListenerStartTime != 0)
@@ -61,25 +76,16 @@ public class DSPThread extends Thread {
 	    		lastListenerStartTime = startTime;
 	    		callbackTicks++;
 
-	    		
-	    		
-	    		//int delayMilliseconds = 250; // half a second
-	    		//int delaySamples = (int)((float)delayMilliseconds * sampleRate / 1000); // assumes 44100 Hz sample rate
-	    		//float decay = 0.5f;
-	    		//for (int i = 0; i < blockSize - delaySamples; i++)
-	    		//{
-	    		//    // WARNING: overflow potential
-	    		//    buffers[jx % buffers.length][i+delaySamples] = 0;//(short)((float)buffers[jx][i] * decay);
-	    		//}
-
+	    		// calls DSP perform for selected algorithm
+	    		time1 = SystemClock.uptimeMillis();
+	    		dspAlgorithm.perform(buffers[jx % buffers.length]);
+				dspCycleTime += (SystemClock.uptimeMillis() - time1);
 	    		
 	    		// Write to the system buffer.
-	    		long timed1, timed2;
-	    		timed1 = SystemClock.uptimeMillis();
-				track.write(buffers[jx++ % buffers.length], 0, blockSize);
-				timed2 = SystemClock.uptimeMillis();
-				sampleWriteTime += (timed2 - timed1);
-				dspCycleTime += (timed2 - startTime);
+	    		time1 = SystemClock.uptimeMillis();
+				if (track != null)
+					track.write(buffers[jx++ % buffers.length], 0, blockSize);
+				sampleWriteTime += (SystemClock.uptimeMillis() - time1);
 	    		
 	    		//if (callbackTicks == 1000)
 	    		//	stopRunning();
@@ -146,7 +152,8 @@ public class DSPThread extends Thread {
 					
 					times1 = SystemClock.uptimeMillis();
 					// Log.i("Map", "Writing new data to buffer");
-					N = recorder.read(buffer, 0, blockSize);
+					if (recorder != null)
+						N = recorder.read(buffer, 0, blockSize);
 					times2 = SystemClock.uptimeMillis();
 					sampleReadTime += (times2 - times1);
 
@@ -196,6 +203,13 @@ public class DSPThread extends Thread {
 				return false;
 			isRunning = false;
 			return true;
+		}
+		
+		
+		// setter
+		public void setParams(double param1) {
+			parameter1 = param1;
+			dspAlgorithm.setParams(param1);
 		}
 
 		// accessor
@@ -247,7 +261,7 @@ public class DSPThread extends Thread {
 		
 		// accessor
 		public float getBlockPeriod() {
-			return ((float) blockSize) /  sampleRate * 100;
+			return ((float) blockSize) /  sampleRate * 1000;
 		}
 		
 		

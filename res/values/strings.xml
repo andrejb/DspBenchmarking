@@ -23,12 +23,15 @@
     <string name="reverb">Reverb</string>
     
     <string-array name="algorithm_array">
+        <item>Loopback</item>
         <item>Reverb</item>
         <item>FFT</item>
     </string-array>
+    
         <string name="read_cycles">"Read cycles: "</string>
         <string name="int_0">0</string>
         <string name="float_0">0.00</string>
         <string name="elapsed_time">"Elapsed time:  "</string>
+        <string name="param_1">Parameter 1:</string>
     
 </resources>

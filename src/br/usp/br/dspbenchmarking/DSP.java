@@ -12,6 +12,8 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -19,14 +21,16 @@ public class DSP extends Activity {
 
 	// Variables from the GUI
 	private int blockSize = 64;
-	private int algorithm = 1;
+	private int dspAlgorithm = 1;
+	int maxParamValue = 100;
+	private double parameter1 = 1.0;
 
 	// Threads
 	private SystemWatchThread swt;
 	private DSPThread dt;
 
 	// Views
-	private CheckBox c;
+	private CheckBox toggleDSPView;
 	private ProgressBar cpuUsageBar;
 	private TextView dspBlockSizeView = null;
 	private TextView sampleReadTimeView = null;
@@ -39,7 +43,8 @@ public class DSP extends Activity {
 	private TextView callbackPeriodView = null;
 	private Spinner algorithmView = null;
 	private TextView elapsedTimeView = null;
-
+	private SeekBar parameter1View = null;
+	
 
 	/************************************************************************
 	 * onCreate Calles when the activity is first created.
@@ -48,6 +53,7 @@ public class DSP extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.dsp);
+		toggleDSPView = (CheckBox) findViewById(R.id.toggle_dsp);
 		cpuUsageBar = (ProgressBar) findViewById(R.id.cpu_usage);
 		dspBlockSizeView = (TextView) findViewById(R.id.dspBlockSizeValue);
 		sampleReadTimeView = (TextView) findViewById(R.id.meanSampleReadTimeValue);
@@ -59,6 +65,7 @@ public class DSP extends Activity {
 		readCyclesView = (TextView) findViewById(R.id.readCyclesValue);
 		callbackPeriodView = (TextView) findViewById(R.id.callbackPeriodValue);
 		elapsedTimeView = (TextView) findViewById(R.id.elapsedTimeValue);
+		parameter1View = (SeekBar) findViewById(R.id.param1);
 
 		// Init algorithms list
 		algorithmView = (Spinner) findViewById(R.id.algorithm);
@@ -81,6 +88,11 @@ public class DSP extends Activity {
 		rb.setOnClickListener(dspRadioListener);
 		rb = (RadioButton) findViewById(R.id.radioDsp512);
 		rb.setOnClickListener(dspRadioListener);
+		
+		// Input paramteres listeners
+		parameter1View.setMax(maxParamValue);
+		parameter1View.setProgress(maxParamValue);
+		parameter1View.setOnSeekBarChangeListener(parameter1Listener);
 		
 		// This thread updates the screen with new info every 1 second.
 		swt = new SystemWatchThread(mHandler);
@@ -127,16 +139,15 @@ public class DSP extends Activity {
 		}
 	};
 
+	
 	/************************************************************************
 	 * This turns FFT processing on and off.
 	 ***********************************************************************/
 	public void toggleDSP(View v) {
-		c = (CheckBox) findViewById(R.id.toggle_dsp);
-		cpuUsageBar = (ProgressBar) findViewById(R.id.cpu_usage);
-
-		if (c.isChecked()) {
+		if (toggleDSPView.isChecked()) {
 			// Threads
-			dt = new DSPThread(blockSize);
+			dt = new DSPThread(blockSize, dspAlgorithm);
+			dt.setParams(parameter1);
 			dt.start();
 			// mProgressStatus = (int) readUsage() * 100;
 		} else {
@@ -155,14 +166,15 @@ public class DSP extends Activity {
 		// et.setText(mProgress.toString());
 	}
 
+	
 	/************************************************************************
-	 * Listens for algorithm change.
+	 * Listener for algorithm change.
 	 ***********************************************************************/
 	public class AlgorithmListener implements OnItemSelectedListener {
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
-			algorithm = pos;
+			dspAlgorithm = pos;
 			restartDSP();
 		}
 
@@ -171,6 +183,7 @@ public class DSP extends Activity {
 		}
 	}
 
+	
 	/************************************************************************
 	 * Listens for DSP toggle clicks.
 	 ***********************************************************************/
@@ -185,20 +198,41 @@ public class DSP extends Activity {
 			// ticks = 0;
 		}
 	};
-
+	
+	
+	/************************************************************************
+	 * Restarts DSP with new parameters.
+	 ***********************************************************************/
+	private OnSeekBarChangeListener parameter1Listener = new OnSeekBarChangeListener() {
+		public void onProgressChanged(SeekBar sb, int i, boolean b) {
+			parameter1 = (float) i / maxParamValue;
+			// set algorithm parameters
+			dt.setParams(parameter1);
+		}
+		public void onStopTrackingTouch(SeekBar sb) {
+			
+		}
+		public void onStartTrackingTouch(SeekBar sb) {
+	
+		}
+	};
+	
+	
 	/************************************************************************
 	 * Restarts DSP with new parameters.
 	 ***********************************************************************/
 	private void restartDSP() {
-		/*if (c != null)
-			if (c.isChecked()) {
+		if (toggleDSPView != null)
+			if (toggleDSPView.isChecked()) {
+				toggleDSPView.setChecked(false);
 				toggleDSP(null);
+				toggleDSPView.setChecked(true);
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(100);
 				} catch (Exception e) {
 				}
 				toggleDSP(null);
-			}*/
+			}
 	}
 
 }
