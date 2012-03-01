@@ -5,13 +5,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.ProgressBar;
-import android.widget.RadioButton;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
@@ -24,6 +22,7 @@ public class DSP extends Activity {
 	private int dspAlgorithm = 1;
 	int maxParamValue = 100;
 	private double parameter1 = 1.0;
+	private int audioSource = 0; // Microphone is default.
 
 	// Threads
 	private SystemWatchThread swt;
@@ -31,19 +30,23 @@ public class DSP extends Activity {
 
 	// Views
 	private CheckBox toggleDSPView;
+	
+	private Spinner dspBlockSizeView = null;
+	private Spinner audioSourceView = null;
+	private Spinner algorithmView = null;
+
 	private ProgressBar cpuUsageBar;
-	private TextView dspBlockSizeView = null;
+	private ProgressBar dspCycleTimeBar = null;
+	private SeekBar parameter1View = null;
+
 	private TextView sampleReadTimeView = null;
 	private TextView sampleWriteTimeView = null;
 	private TextView dspCycleTimeView = null;
-	private ProgressBar dspCycleTimeBar = null;
 	private TextView dspPeriodView = null;
 	private TextView dspCyclesView = null;
 	private TextView readCyclesView = null;
 	private TextView callbackPeriodView = null;
-	private Spinner algorithmView = null;
 	private TextView elapsedTimeView = null;
-	private SeekBar parameter1View = null;
 	
 
 	/************************************************************************
@@ -55,7 +58,6 @@ public class DSP extends Activity {
 		setContentView(R.layout.dsp);
 		toggleDSPView = (CheckBox) findViewById(R.id.toggle_dsp);
 		cpuUsageBar = (ProgressBar) findViewById(R.id.cpu_usage);
-		dspBlockSizeView = (TextView) findViewById(R.id.dspBlockSizeValue);
 		sampleReadTimeView = (TextView) findViewById(R.id.meanSampleReadTimeValue);
 		sampleWriteTimeView = (TextView) findViewById(R.id.meanSampleWriteTimeValue);
 		dspCycleTimeView = (TextView) findViewById(R.id.meanDspCycleTimeValue);
@@ -75,20 +77,28 @@ public class DSP extends Activity {
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		algorithmView.setAdapter(adapter);
 		algorithmView.setOnItemSelectedListener(new AlgorithmListener());
-
-		// radio buttons listener
-		RadioButton rb;
-		rb = (RadioButton) findViewById(R.id.radioDsp1);
-		rb.setOnClickListener(dspRadioListener);
-		rb = (RadioButton) findViewById(R.id.radioDsp64);
-		rb.setOnClickListener(dspRadioListener);
-		rb = (RadioButton) findViewById(R.id.radioDsp128);
-		rb.setOnClickListener(dspRadioListener);
-		rb = (RadioButton) findViewById(R.id.radioDsp256);
-		rb.setOnClickListener(dspRadioListener);
-		rb = (RadioButton) findViewById(R.id.radioDsp512);
-		rb.setOnClickListener(dspRadioListener);
+		algorithmView.setSelection(0);
 		
+		// Init block size list
+		dspBlockSizeView = (Spinner) findViewById(R.id.dspBlockSize);
+		ArrayAdapter<CharSequence> adapter2 = ArrayAdapter.createFromResource(
+				this, R.array.block_size_array,
+				android.R.layout.simple_spinner_item);
+		adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		dspBlockSizeView.setAdapter(adapter2);
+		dspBlockSizeView.setOnItemSelectedListener(new DspRadioListener());
+		dspBlockSizeView.setSelection(6);
+		
+		// Init audio source list
+		audioSourceView = (Spinner) findViewById(R.id.audioSource);
+		ArrayAdapter<CharSequence> adapter3 = ArrayAdapter.createFromResource(
+				this, R.array.source_array,
+				android.R.layout.simple_spinner_item);
+		adapter3.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		audioSourceView.setAdapter(adapter3);
+		audioSourceView.setOnItemSelectedListener(new AudioSourceListener());
+		audioSourceView.setSelection(0);
+
 		// Input paramteres listeners
 		parameter1View.setMax(maxParamValue);
 		parameter1View.setProgress(maxParamValue);
@@ -109,8 +119,6 @@ public class DSP extends Activity {
 
 			// Set values in text Views
 			if (dt != null) {
-				dspBlockSizeView.setText(Long.toString(dt.getBlockSize())); // block
-																			// size
 				sampleReadTimeView.setText(String.format("%.6f",
 						dt.getSampleReadMeanTime())); // read mean time
 				sampleWriteTimeView.setText(String.format("%.6f",
@@ -146,7 +154,10 @@ public class DSP extends Activity {
 	public void toggleDSP(View v) {
 		if (toggleDSPView.isChecked()) {
 			// Threads
-			dt = new DSPThread(blockSize, dspAlgorithm);
+			if (audioSource == 0)
+				dt = new DSPThread(blockSize, dspAlgorithm);
+			else if (audioSource == 1)
+				dt = new DSPThread(blockSize, dspAlgorithm, "/mnt/sdcard/DspBenchmarking/arpeggia.wav");
 			dt.setParams(parameter1);
 			dt.start();
 			// mProgressStatus = (int) readUsage() * 100;
@@ -170,7 +181,7 @@ public class DSP extends Activity {
 	/************************************************************************
 	 * Listener for algorithm change.
 	 ***********************************************************************/
-	public class AlgorithmListener implements OnItemSelectedListener {
+	private class AlgorithmListener implements OnItemSelectedListener {
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
@@ -185,17 +196,37 @@ public class DSP extends Activity {
 
 	
 	/************************************************************************
-	 * Listens for DSP toggle clicks.
+	 * Listens for DSP block size change.
 	 ***********************************************************************/
-	private OnClickListener dspRadioListener = new OnClickListener() {
-		public void onClick(View v) {
-			// Perform action on clicks
-			RadioButton rb = (RadioButton) v;
-			blockSize = Integer.parseInt(rb.getText().toString());
+	private class DspRadioListener implements OnItemSelectedListener {
+		public void onItemSelected(AdapterView<?> parent, View view, int pos,
+				long id) {			// Perform action on clicks
+			blockSize = (int) Math.pow(2, pos);
 			restartDSP();
 			// sampleWriteTime = 0;
 			// dspCycleTime = 0;
 			// ticks = 0;
+		}
+		public void onNothingSelected(AdapterView<?> parent) {
+			// Do nothing.
+		}
+	};
+	
+	
+	/************************************************************************
+	 * Listens for audio source change
+	 ***********************************************************************/
+	private class AudioSourceListener implements OnItemSelectedListener {
+		public void onItemSelected(AdapterView<?> parent, View view, int pos,
+				long id) {			// Perform action on clicks
+			audioSource = pos;
+			restartDSP();
+			// sampleWriteTime = 0;
+			// dspCycleTime = 0;
+			// ticks = 0;
+		}
+		public void onNothingSelected(AdapterView<?> parent) {
+			// Do nothing.
 		}
 	};
 	
@@ -207,7 +238,8 @@ public class DSP extends Activity {
 		public void onProgressChanged(SeekBar sb, int i, boolean b) {
 			parameter1 = (float) i / maxParamValue;
 			// set algorithm parameters
-			dt.setParams(parameter1);
+			if (dt != null)
+				 dt.setParams(parameter1);
 		}
 		public void onStopTrackingTouch(SeekBar sb) {
 			
