@@ -1,6 +1,6 @@
 package br.usp.br.dspbenchmarking;
 
-public class PitchShifting extends DSPAlgorithm {
+public class PitchShifting extends DspAlgorithm {
 
 	public PitchShifting(int sRate, int bSize) {
 		super(sRate, bSize);

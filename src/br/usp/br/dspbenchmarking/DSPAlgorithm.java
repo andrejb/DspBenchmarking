@@ -1,13 +1,13 @@
 package br.usp.br.dspbenchmarking;
 
-public abstract class DSPAlgorithm {
+public abstract class DspAlgorithm {
 
 	private int blockSize;
 	private int sampleRate;
 	
 	private double parameter1 = 1;
 	
-	public DSPAlgorithm(int sRate, int bSize) {
+	public DspAlgorithm(int sRate, int bSize) {
 		sampleRate = sRate;
 		blockSize = bSize;
 	}

@@ -15,7 +15,9 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-public class DSP extends Activity {
+public class DspActivity extends Activity {
+	
+	//private static final String TAG = "DspActivity";
 
 	// Variables from the GUI
 	private int blockSize = 64;
@@ -26,7 +28,7 @@ public class DSP extends Activity {
 
 	// Threads
 	private SystemWatchThread swt;
-	private DSPThread dt;
+	private DspThread dt;
 
 	// Views
 	private CheckBox toggleDSPView;
@@ -97,7 +99,7 @@ public class DSP extends Activity {
 		adapter3.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		audioSourceView.setAdapter(adapter3);
 		audioSourceView.setOnItemSelectedListener(new AudioSourceListener());
-		audioSourceView.setSelection(0);
+		audioSourceView.setSelection(1);
 
 		// Input paramteres listeners
 		parameter1View.setMax(maxParamValue);
@@ -155,9 +157,9 @@ public class DSP extends Activity {
 		if (toggleDSPView.isChecked()) {
 			// Threads
 			if (audioSource == 0)
-				dt = new DSPThread(blockSize, dspAlgorithm);
+				dt = new DspThread(blockSize, dspAlgorithm);
 			else if (audioSource == 1)
-				dt = new DSPThread(blockSize, dspAlgorithm, "/mnt/sdcard/DspBenchmarking/arpeggia.wav");
+				dt = new DspThread(blockSize, dspAlgorithm, "/sdcard/DspBenchmarking/arpeggia2.wav");
 			dt.setParams(parameter1);
 			dt.start();
 			// mProgressStatus = (int) readUsage() * 100;

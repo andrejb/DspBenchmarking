@@ -14,12 +14,12 @@
     <string name="dsp_block_128">128</string>
     <string name="dsp_block_256">256</string>
     <string name="dsp_block_512">512</string>
-    <string name="dsp_block_size">DSP block size:</string>
+    <string name="dsp_block_size">DSP block size:  </string>
     <string name="dsp_block_1">1</string>
     <string name="dsp_period">DSP (theoretical) period:  </string>
     <string name="dsp_cycles">DSP cycles:  </string>
-    <string name="callback_period">Callback period:</string>
-    <string name="algorithm">Algorithm:</string>
+    <string name="callback_period">Callback period:  </string>
+    <string name="algorithm">Algorithm:  </string>
     <string name="reverb">Reverb</string>
     
     <string-array name="algorithm_array">
@@ -48,7 +48,7 @@
      	<item>File 1</item>
     </string-array>
     
-        <string name="read_cycles">"Read cycles: "</string>
+        <string name="read_cycles">"Read cycles:  "</string>
         <string name="int_0">0</string>
         <string name="float_0">0.00</string>
         <string name="elapsed_time">"Elapsed time:  "</string>

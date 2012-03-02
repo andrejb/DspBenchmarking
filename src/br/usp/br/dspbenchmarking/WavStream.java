@@ -32,7 +32,6 @@ public class WavStream {
 	
 	// Buffers
 	ShortBuffer dataBuffer = null;
-	ByteBuffer dataByteBuffer = null;
 
 	/**
 	 * Constructor
@@ -41,8 +40,10 @@ public class WavStream {
 	public WavStream(String path) throws FileNotFoundException, IOException {
 		filePath = new String(path);
 		wavStream = new BufferedInputStream(new FileInputStream(filePath));
+		wavStream.mark(44);
 		readHeader();
-		readWavPcm();
+		wavStream.reset();
+		initWavPcm();
 	}
 
 
@@ -56,9 +57,12 @@ public class WavStream {
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 
 		wavStream.read(buffer.array(), buffer.arrayOffset(), buffer.capacity());
-
 		buffer.rewind();
-		buffer.position(buffer.position() + 20);
+		buffer.position(buffer.position() + 16);
+		
+		int subChunkSize = buffer.getInt();
+		Log.e("WavStream", "subChunkSize="+subChunkSize);
+		
 		int format = buffer.getShort();
 		checkFormat(format == 1, "Unsupported encoding: " + format); // 1 means
 																		// Linear
@@ -72,35 +76,57 @@ public class WavStream {
 		int bits = buffer.getShort();
 		checkFormat(bits == 16, "Unsupported bits: " + bits);
 		while (buffer.getInt() != 0x61746164) { // "data" marker
-			Log.d("WavInfo", "Skipping non-data chunk");
-			int size = buffer.getInt();
-			wavStream.skip(size);
-			buffer.rewind();
-			wavStream.read(buffer.array(), buffer.arrayOffset(), 8);
-			buffer.rewind();
+			//Log.d("WavInfo", "Skipping non-data chunk");
+			//int size = buffer.getInt();
+			//wavStream.skip(size);
+			//buffer.rewind();
+			//wavStream.read(buffer.array(), buffer.arrayOffset(), 8);
+			//buffer.rewind();
 		}
 		dataSizeInBytes = buffer.getInt();
 		checkFormat(dataSizeInBytes > 0, "wrong datasize: " + dataSizeInBytes);
 
-		
+		wavStream.reset();
+		wavStream.mark(44 + dataSizeInBytes);
 		//return new WavInfo(new FormatSpec(rate, channels == 2), dataSize);
 	}
 	
-	
-	private void readWavPcm() throws IOException {
-		byte[] data = new byte[dataSizeInBytes];
-		wavStream.read(data, 0, data.length);
-		dataByteBuffer = ByteBuffer.allocate(dataSizeInBytes);
-		dataByteBuffer.put(data);
-		dataBuffer = dataByteBuffer.asShortBuffer();
+	/**
+	 * Prepares the Short buffer for reading the wav file.
+	 * @throws IOException
+	 */
+	private void initWavPcm() throws IOException {
+		ByteBuffer buffer = ByteBuffer.allocate(44 + dataSizeInBytes);
+		buffer.order(ByteOrder.LITTLE_ENDIAN);
+		wavStream.read(buffer.array(), buffer.arrayOffset(), buffer.capacity());
+		buffer.rewind();
+		buffer.position(buffer.position() + 44);
+		dataBuffer = buffer.asShortBuffer();
+		dataBuffer.mark();
 	}
 	
+	/**
+	 * @return Short buffer with the data of the WAV file.
+	 */
 	public ShortBuffer getBuffer() {
 		return dataBuffer;
 	}
 	
+	/**
+	 * resets the internal buffer.
+	 */
+	public void reset() {
+		dataBuffer.reset();
+	}
+	
+	/**
+	 * Queries the Short buffer for more data.
+	 * @param buffer
+	 * @param offset
+	 * @param size
+	 */
 	public void getFromBuffer(short[] buffer, int offset, int size) {
-		dataByteBuffer.asShortBuffer().get(buffer, offset, size);
+		dataBuffer.get(buffer, offset, size);
 	}
 	
 	
@@ -110,8 +136,28 @@ public class WavStream {
 	}
 
 
+	/**
+	 * Returns the sample rate.
+	 * @return
+	 */
 	public int getSampleRate() {
 		return sampleRate;
+	}
+	
+	/**
+	 * Returns the WAV size in Bytes.
+	 * @return
+	 */
+	public int getDataSizeInBytes() {
+		return dataSizeInBytes;
+	}
+	
+	/**
+	 * Returns the WAV size in Shorts.
+	 * @return
+	 */
+	public int getDataSizeInShorts() {
+		return dataSizeInBytes / 2;
 	}
 
 }

@@ -20,7 +20,7 @@ public class DspBenchmarking extends Activity {
     }
     
     public void startDSP(View v){
-      Intent dsp_intent = new Intent(DspBenchmarking.this, DSP.class);
+      Intent dsp_intent = new Intent(DspBenchmarking.this, DspActivity.class);
       DspBenchmarking.this.startActivity(dsp_intent);
     }
     

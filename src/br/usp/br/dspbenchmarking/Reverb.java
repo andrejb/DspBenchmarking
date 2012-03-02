@@ -1,6 +1,6 @@
 package br.usp.br.dspbenchmarking;
 
-public class Reverb extends DSPAlgorithm {
+public class Reverb extends DspAlgorithm {
 
 	public Reverb(int sRate, int bSize) {
 		super(sRate, bSize);
