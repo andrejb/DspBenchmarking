@@ -28,7 +28,8 @@ public class DspThread extends Thread {
 	private int audioSource;
 	AudioRecord recorder = null;
 	AudioTrack track = null;
-	short[][] buffers = null;
+	short[] buffer = null;
+	final int BUFFER_SIZE_IN_BLOCKS = 256;
 	int ix = 0;
 	int jx = 0;
 
@@ -55,7 +56,6 @@ public class DspThread extends Thread {
 	// Stream
 	WavStream wavStream = null;
 	String filePath = null;
-	int dataSizeInShorts;
 
 	/**
 	 * Crates a DSP thread with input from MIC
@@ -101,14 +101,12 @@ public class DspThread extends Thread {
 	 * Initiates microphone audio stream.
 	 */
 	private void startRecorder() {
-		//Log.i("DspThread", "toaqui");
-
 		if (audioSource == AUDIO_SOURCE_FILE)
 			try {
 				// create the stream and the buffer.
-				wavStream = new WavStream(filePath);
-				dataSizeInShorts = wavStream.getDataSizeInShorts();
-				buffers = new short[dataSizeInShorts/blockSize][blockSize];
+				wavStream = new WavStream(filePath, blockSize);
+				int blocks = (int) Math.ceil((float) wavStream.getDataSizeInShorts() / blockSize);
+				buffer = new short[blocks * blockSize];
 				// schedule the DSP function.
 				long blockPeriodNanoseconds = (long) (1000000 * getBlockPeriod());
 				dspHandle = scheduler.scheduleAtFixedRate(fileDspCallback,
@@ -119,7 +117,7 @@ public class DspThread extends Thread {
 			}
 		else if (audioSource == AUDIO_SOURCE_MIC) {
 			// create the buffer.
-			buffers = new short[256][blockSize];
+			buffer = new short[BUFFER_SIZE_IN_BLOCKS*blockSize];
 			// initiate the recording from microphone.
 			recorder = new AudioRecord(AudioSource.MIC, // Audio source
 					// (could be
@@ -155,23 +153,29 @@ public class DspThread extends Thread {
 			dspAlgorithm = new Loopback(sampleRate, blockSize);
 		else if (algorithm == 1)
 			dspAlgorithm = new Reverb(sampleRate, blockSize);
+		else if (algorithm == 2)
+			dspAlgorithm = new PhaseVocoder(sampleRate, blockSize);
 		setParams(parameter1);
 	}
 
 	/**
 	 * DSP callback.
 	 */
-	private void dspCallback() {
-		long time1;
+	private void dspCallback(int wrap) {
+		short[] outputBuffer = new short[blockSize];
+		//System.arraycopy(buffer, (jx++ % BUFFER_SIZE_IN_BLOCKS) * blockSize, outputBuffer, 0, blockSize);
 		callbackTicks++;
 		// calls DSP perform for selected algorithm
+		long time1;
 		time1 = SystemClock.uptimeMillis();
-		dspAlgorithm.perform(buffers[jx % buffers.length]);
+		dspAlgorithm.perform(outputBuffer);
 		dspCycleTime += (SystemClock.uptimeMillis() - time1);
 		// Write to the system buffer.
 		time1 = SystemClock.uptimeMillis();
-		if (track != null)
-			track.write(buffers[jx++ % buffers.length], 0, blockSize);
+		if (track != null) {
+			track.write(buffer, (jx++ % wrap) * blockSize, blockSize);
+			//track.write(outputBuffer, 0, blockSize);
+		}
 		sampleWriteTime += (SystemClock.uptimeMillis() - time1);
 		elapsedTime = SystemClock.uptimeMillis() - startTime;
 	}
@@ -181,17 +185,13 @@ public class DspThread extends Thread {
 	 */
 	AudioRecord.OnRecordPositionUpdateListener microphoneDspCallback = new AudioRecord.OnRecordPositionUpdateListener() {
 		private long lastListenerStartTime = 0;
-
 		public void onPeriodicNotification(AudioRecord recorder) {
-
 			// Takes note of time between listeners
 			long startTime = SystemClock.uptimeMillis();
 			if (lastListenerStartTime != 0)
 				callbackPeriod += (startTime - lastListenerStartTime);
 			lastListenerStartTime = startTime;
-
-			dspCallback();
-
+			dspCallback(BUFFER_SIZE_IN_BLOCKS);
 			// if (callbackTicks == 1000)
 			// stopRunning();
 		}
@@ -204,8 +204,14 @@ public class DspThread extends Thread {
 	 * Listener for when using AUDIO_SOURCE_FILE
 	 */
 	final Runnable fileDspCallback = new Runnable() {
+		private long lastListenerStartTime = 0;
 		public void run() {
-			dspCallback();
+			// Takes note of time between listeners
+			long startTime = SystemClock.uptimeMillis();
+			if (lastListenerStartTime != 0)
+				callbackPeriod += (startTime - lastListenerStartTime);
+			lastListenerStartTime = startTime;
+			dspCallback(wavStreamBlocks());
 		};
 	};
 
@@ -220,14 +226,12 @@ public class DspThread extends Thread {
 			// turn on audio input and output.
 			startAudioTrack();
 			startRecorder();
-			
 			// execute the read loop until DSP toggles.
 			startTime = SystemClock.uptimeMillis();
 			if (audioSource == AUDIO_SOURCE_MIC)
-				microphoneLoop();
+				microphoneReadLoop();
 			if (audioSource == AUDIO_SOURCE_FILE)
-				fileLoop();
-			
+				fileReadLoop();
 			// free audio resources.
 			releaseIO();
 			
@@ -239,16 +243,14 @@ public class DspThread extends Thread {
 
 	}
 
-	private void microphoneLoop() {
+	private void microphoneReadLoop() {
 		long times1, times2;
-		short[] buffer;
 		while (isRunning) {
 			readTicks++;
 			// read to buffer
-			buffer = buffers[ix++ % buffers.length];
 			times1 = SystemClock.uptimeMillis();
 			if (recorder != null)
-				recorder.read(buffer, 0, blockSize);
+				recorder.read(buffer, (ix++ % BUFFER_SIZE_IN_BLOCKS) * blockSize, blockSize);
 			times2 = SystemClock.uptimeMillis();
 			sampleReadTime += (times2 - times1);
 			// calculate elapsed time
@@ -258,16 +260,14 @@ public class DspThread extends Thread {
 		}
 	}
 
-	private void fileLoop() {
+	private void fileReadLoop() {
 		long times1, times2;
-		short[] buffer;
 		wavStream.reset();
-		for (int block = 1; block < dataSizeInShorts / blockSize; block++) {
+		for (int block = 0; block < wavStreamBlocks(); block++) {
 			readTicks++;
 			// read from WAV buffer.
-			buffer = buffers[ix++ % buffers.length];
 			times1 = SystemClock.uptimeMillis();
-			wavStream.getFromBuffer(buffer, 0, blockSize);
+			wavStream.getFromBuffer(buffer, block*blockSize, blockSize);
 			times2 = SystemClock.uptimeMillis();
 			sampleReadTime += (times2 - times1);
 			// if (elapsedTime > (100000.0 * (float) blockSize /
@@ -275,7 +275,12 @@ public class DspThread extends Thread {
 			// stopRunning();
 		}
 		// hang on untill DSP toggles.
-		while (isRunning);
+		while (isRunning)
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				Log.e("ERROR", "Thread was Interrupted");
+			};
 	}
 
 	/**
@@ -326,6 +331,13 @@ public class DspThread extends Thread {
 			dspHandle.cancel(true);
 		return true;
 	}
+	
+	private int wavStreamBlocks() {
+		if (wavStream != null)
+			return (int) Math.ceil((float) wavStream.getDataSizeInShorts() / blockSize);
+		return 0;
+	}
+
 
 	/**
 	 * Stops the thread.

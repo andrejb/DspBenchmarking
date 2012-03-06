@@ -9,9 +9,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 
-import android.util.Log;
-
-
 
 public class WavStream {
 
@@ -32,15 +29,17 @@ public class WavStream {
 	
 	// Buffers
 	ShortBuffer dataBuffer = null;
+	int blockSize;
 
 	/**
 	 * Constructor
 	 * @throws FileNotFoundException 
 	 */
-	public WavStream(String path) throws FileNotFoundException, IOException {
+	public WavStream(String path, int bSize) throws FileNotFoundException, IOException {
 		filePath = new String(path);
+		blockSize = bSize;
 		wavStream = new BufferedInputStream(new FileInputStream(filePath));
-		wavStream.mark(44);
+		wavStream.mark(HEADER_SIZE);
 		readHeader();
 		wavStream.reset();
 		initWavPcm();
@@ -58,10 +57,10 @@ public class WavStream {
 
 		wavStream.read(buffer.array(), buffer.arrayOffset(), buffer.capacity());
 		buffer.rewind();
-		buffer.position(buffer.position() + 16);
+		buffer.position(buffer.position() + 20);
 		
-		int subChunkSize = buffer.getInt();
-		Log.e("WavStream", "subChunkSize="+subChunkSize);
+		//int subChunkSize = buffer.getInt();
+		//Log.e("WavStream", "subChunkSize="+subChunkSize);
 		
 		int format = buffer.getShort();
 		checkFormat(format == 1, "Unsupported encoding: " + format); // 1 means
@@ -87,7 +86,7 @@ public class WavStream {
 		checkFormat(dataSizeInBytes > 0, "wrong datasize: " + dataSizeInBytes);
 
 		wavStream.reset();
-		wavStream.mark(44 + dataSizeInBytes);
+		wavStream.mark(HEADER_SIZE + dataSizeInBytes);
 		//return new WavInfo(new FormatSpec(rate, channels == 2), dataSize);
 	}
 	
@@ -96,11 +95,13 @@ public class WavStream {
 	 * @throws IOException
 	 */
 	private void initWavPcm() throws IOException {
-		ByteBuffer buffer = ByteBuffer.allocate(44 + dataSizeInBytes);
+		int shortBlocks = (int) Math.ceil(((float) dataSizeInBytes / 2) / blockSize) + 2;
+		ByteBuffer buffer = ByteBuffer.allocate(shortBlocks * 2 * blockSize);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
-		wavStream.read(buffer.array(), buffer.arrayOffset(), buffer.capacity());
+		wavStream.skip(HEADER_SIZE);
+		wavStream.read(buffer.array(), 0, shortBlocks * 2 * blockSize);
 		buffer.rewind();
-		buffer.position(buffer.position() + 44);
+		buffer.position(HEADER_SIZE);
 		dataBuffer = buffer.asShortBuffer();
 		dataBuffer.mark();
 	}
@@ -126,6 +127,10 @@ public class WavStream {
 	 * @param size
 	 */
 	public void getFromBuffer(short[] buffer, int offset, int size) {
+		//Log.i("getFromBuffer", "dst offset="+offset);
+		//Log.i("getFromBuffer", "dst size="+size);
+		//Log.i("getFromBuffer", "dst length="+buffer.length);
+		//Log.i("getFromBuffer", "d===================");
 		dataBuffer.get(buffer, offset, size);
 	}
 	

@@ -88,7 +88,7 @@ public class DspActivity extends Activity {
 				android.R.layout.simple_spinner_item);
 		adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		dspBlockSizeView.setAdapter(adapter2);
-		dspBlockSizeView.setOnItemSelectedListener(new DspRadioListener());
+		dspBlockSizeView.setOnItemSelectedListener(new BlockSizeListener());
 		dspBlockSizeView.setSelection(6);
 		
 		// Init audio source list
@@ -200,7 +200,7 @@ public class DspActivity extends Activity {
 	/************************************************************************
 	 * Listens for DSP block size change.
 	 ***********************************************************************/
-	private class DspRadioListener implements OnItemSelectedListener {
+	private class BlockSizeListener implements OnItemSelectedListener {
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {			// Perform action on clicks
 			blockSize = (int) Math.pow(2, pos);

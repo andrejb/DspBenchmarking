@@ -5,9 +5,9 @@
     <string name="app_name">DSP Benchmarking</string>
     <string name="quit">Sair</string>
     <string name="toggle_dsp">Ativar o DSP</string>
-    <string name="mean_sample_write_time">Mean sample write time:  </string>
-    <string name="mean_sample_read_time">Mean sample read time:  </string>
-    <string name="mean_dsp_cycle_time">Mean DSP cycle time:  </string>
+    <string name="mean_sample_write_time">"Mean sample write time:  "</string>
+    <string name="mean_sample_read_time">"Mean sample read time:  "</string>
+    <string name="mean_dsp_cycle_time">"Mean DSP cycle time:  "</string>
     <string name="cpu_usage">CPU usage:  </string>
     <string name="dsp_cycle_time_processing">Amount of DSP cycle used with processing:  </string>
     <string name="dsp_block_64">64</string>
@@ -16,15 +16,16 @@
     <string name="dsp_block_512">512</string>
     <string name="dsp_block_size">DSP block size:  </string>
     <string name="dsp_block_1">1</string>
-    <string name="dsp_period">DSP (theoretical) period:  </string>
-    <string name="dsp_cycles">DSP cycles:  </string>
-    <string name="callback_period">Callback period:  </string>
+    <string name="dsp_period">"DSP (theoretical) period:  "</string>
+    <string name="dsp_cycles">"DSP cycles:  "</string>
+    <string name="callback_period">"Callback period:  "</string>
     <string name="algorithm">Algorithm:  </string>
     <string name="reverb">Reverb</string>
     
     <string-array name="algorithm_array">
         <item>Loopback</item>
         <item>Reverb</item>
+        <item>Phase Vocoder</item>
         <item>FFT</item>
     </string-array>
     
@@ -41,6 +42,8 @@
         <item>512</item>
         <item>1024</item>
         <item>2048</item>
+        <item>4096</item>
+        <item>8192</item>
     </string-array>
     
   	<string-array name="source_array">
@@ -52,7 +55,7 @@
         <string name="int_0">0</string>
         <string name="float_0">0.00</string>
         <string name="elapsed_time">"Elapsed time:  "</string>
-        <string name="param_1">Parameter 1:</string>
+        <string name="param_1">"Parameter 1:  "</string>
         <string name="audio_source">Audio source:</string>
     
 </resources>
