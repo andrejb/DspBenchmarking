@@ -22,14 +22,19 @@
         <activity android:name=".DspActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name="FFT2" >
+        <activity android:name=".TestActivity" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
     </application>
-    
-   	<uses-permission android:name="android.permission.RECORD_AUDIO" />
-    
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
 </manifest>

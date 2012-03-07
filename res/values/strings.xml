@@ -57,5 +57,9 @@
         <string name="elapsed_time">"Elapsed time:  "</string>
         <string name="param_1">"Parameter 1:  "</string>
         <string name="audio_source">Audio source:</string>
+        <string name="dsp_benchmarking">DSP Benchmarking</string>
+        <string name="start">start</string>
+        <string name="loopback">"Loopback:  "</string>
+        <string name="dash">-</string>
     
 </resources>

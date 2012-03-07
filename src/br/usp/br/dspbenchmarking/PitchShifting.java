@@ -9,7 +9,7 @@ public class PitchShifting extends DspAlgorithm {
 	/**
 	 * Shifts the pitch of the incoming signal.
 	 */
-	public void perform(short[] buffer) {
+	public void perform(double[] buffer) {
 		// Pitch Shifting parameters
 		int N = this.getBlockSize();						// block length
 		int Sa = N / 2;										// analysis hop size

@@ -126,7 +126,7 @@ public class WavStream {
 	 * @param offset
 	 * @param size
 	 */
-	public void getFromBuffer(short[] buffer, int offset, int size) {
+	public void read(short[] buffer, int offset, int size) {
 		//Log.i("getFromBuffer", "dst offset="+offset);
 		//Log.i("getFromBuffer", "dst size="+size);
 		//Log.i("getFromBuffer", "dst length="+buffer.length);

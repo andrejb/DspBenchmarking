@@ -27,12 +27,11 @@ public class PhaseVocoder extends DspAlgorithm {
 	}
 
 	@Override
-	public void perform(short[] buffer) {
+	public void perform(double[] buffer) {
 		// Convert input to doubles.
 		double real[] = new double[buffer.length];
 		double imag[] = new double[buffer.length];
 		for (int i = 0; i < real.length; i++) {
-			real[i] = (double) buffer[i] / 65536;
 			imag[i] = 0;
 		}
 		// Do PV analysis

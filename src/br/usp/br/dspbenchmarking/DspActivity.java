@@ -57,7 +57,14 @@ public class DspActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		// Set the view
 		setContentView(R.layout.dsp);
+		
+		// Prevent from locking
+	    this.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		
+		// Get views
 		toggleDSPView = (CheckBox) findViewById(R.id.toggle_dsp);
 		cpuUsageBar = (ProgressBar) findViewById(R.id.cpu_usage);
 		sampleReadTimeView = (TextView) findViewById(R.id.meanSampleReadTimeValue);
@@ -79,7 +86,7 @@ public class DspActivity extends Activity {
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		algorithmView.setAdapter(adapter);
 		algorithmView.setOnItemSelectedListener(new AlgorithmListener());
-		algorithmView.setSelection(0);
+		algorithmView.setSelection(1);
 		
 		// Init block size list
 		dspBlockSizeView = (Spinner) findViewById(R.id.dspBlockSize);

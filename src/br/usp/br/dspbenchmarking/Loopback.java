@@ -7,7 +7,7 @@ public class Loopback extends DspAlgorithm {
 		// TODO Auto-generated constructor stub
 	}
 
-	public void perform(short[] buffer) {
+	public void perform(double[] buffer) {
 
 	}
 	

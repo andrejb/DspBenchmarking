@@ -12,7 +12,7 @@ public abstract class DspAlgorithm {
 		blockSize = bSize;
 	}
 	
-	abstract public void perform(short[] buffer);
+	abstract public void perform(double[] buffer);
 	
 	public int getBlockSize() {
 		return blockSize;

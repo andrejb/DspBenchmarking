@@ -1,26 +1,45 @@
 package br.usp.br.dspbenchmarking;
 
 public class Reverb extends DspAlgorithm {
+	
+	private double oldOutput[];
+	private double oldInput[];
 
 	public Reverb(int sRate, int bSize) {
 		super(sRate, bSize);
-		// TODO Auto-generated constructor stub
+		oldOutput = new double[bSize];
+		oldInput = new double[bSize];
+		java.util.Arrays.fill(oldOutput, 0);
 	}
 	
-	public void perform(short[] buffer) {
+	public void perform(double[] buffer) {
 		//int delayMilliseconds = 5;
 		//int delaySamples = (int)((float)delayMilliseconds * this.getSampleRate() / 1000);
 		
-		int delaySamples = (int) (this.getParameter1() * this.getBlockSize());
+		// holds old input values
+		double[] tmpOldInput = new double[this.getBlockSize()];
+		System.arraycopy(buffer, 0, tmpOldInput, 0, this.getBlockSize());
 		
-		float decay = 0.5f;
-		for (int i = 0; i < this.getBlockSize() - delaySamples; i++)
-		//for (int i = 0; i < this.getBlockSize(); i++)
-		{
-		    // WARNING: overflow potential
-		    //buffer[i] = 0;
-		    buffer[i+delaySamples] = (short)((float)buffer[i] * decay);
-		}
+		// number of delay samples
+		int m = (int) (this.getParameter1() * this.getBlockSize());
+		if (m < 1)
+			m=1;
+		//m=40;
+		
+		// feedback gain
+		double g = 0.7;
+		//double g = this.getParameter1();
+		
+		// perform the reverb
+		for (int i = 0; i < m; i++)
+			buffer[i] = -g * buffer[i] + oldInput[this.getBlockSize()-m+i] + g * oldOutput[this.getBlockSize()-m+i];
+		for (int i = m; i < this.getBlockSize(); i++)
+			buffer[i] = -g * buffer[i] + tmpOldInput[i-m] + g * buffer[i-m];
+		
+		// finish
+		oldInput = tmpOldInput;
+		System.arraycopy(buffer, 0, oldOutput, 0, this.getBlockSize());
+
 	}
 	
 }

@@ -10,6 +10,13 @@
         android:onClick="startDSP"
         android:text="@string/dsp" />
 
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="startTests"
+        android:text="@string/dsp_benchmarking" />
+
     <ProgressBar
         android:id="@+id/pb1"
         style="?android:attr/progressBarStyleHorizontal"
