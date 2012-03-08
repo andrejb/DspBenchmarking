@@ -12,7 +12,10 @@ public class DspBenchmarking extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+		// Prevent from locking
+	    this.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // Set view
+	    setContentView(R.layout.main);
         ProgressBar pb = (ProgressBar) findViewById(R.id.pb1);
         EditText et = (EditText) findViewById(R.id.texto1);
         et.setText(pb.toString());

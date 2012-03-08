@@ -1,21 +1,21 @@
 package br.usp.br.dspbenchmarking;
 
-import android.app.Activity;
+import java.io.IOException;
+import java.io.InputStream;
+
+import android.content.res.Resources.NotFoundException;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
-import android.widget.TextView;
 
-public class DspActivity extends Activity {
+public class DspActivity extends StatsActivity {
 	
 	//private static final String TAG = "DspActivity";
 
@@ -26,56 +26,28 @@ public class DspActivity extends Activity {
 	private double parameter1 = 1.0;
 	private int audioSource = 0; // Microphone is default.
 
-	// Threads
-	private SystemWatchThread swt;
-	private DspThread dt;
-
 	// Views
 	private CheckBox toggleDSPView;
 	
 	private Spinner dspBlockSizeView = null;
 	private Spinner audioSourceView = null;
 	private Spinner algorithmView = null;
-
-	private ProgressBar cpuUsageBar;
-	private ProgressBar dspCycleTimeBar = null;
 	private SeekBar parameter1View = null;
 
-	private TextView sampleReadTimeView = null;
-	private TextView sampleWriteTimeView = null;
-	private TextView dspCycleTimeView = null;
-	private TextView dspPeriodView = null;
-	private TextView dspCyclesView = null;
-	private TextView readCyclesView = null;
-	private TextView callbackPeriodView = null;
-	private TextView elapsedTimeView = null;
-	
+
 
 	/************************************************************************
 	 * onCreate Calles when the activity is first created.
 	 ***********************************************************************/
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		
 		// Set the view
 		setContentView(R.layout.dsp);
+		super.onCreate(savedInstanceState);
 		
-		// Prevent from locking
-	    this.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
 		// Get views
 		toggleDSPView = (CheckBox) findViewById(R.id.toggle_dsp);
-		cpuUsageBar = (ProgressBar) findViewById(R.id.cpu_usage);
-		sampleReadTimeView = (TextView) findViewById(R.id.meanSampleReadTimeValue);
-		sampleWriteTimeView = (TextView) findViewById(R.id.meanSampleWriteTimeValue);
-		dspCycleTimeView = (TextView) findViewById(R.id.meanDspCycleTimeValue);
-		dspCycleTimeBar = (ProgressBar) findViewById(R.id.dspCycleBar);
-		dspPeriodView = (TextView) findViewById(R.id.dspPeriodValue);
-		dspCyclesView = (TextView) findViewById(R.id.dspCyclesValue);
-		readCyclesView = (TextView) findViewById(R.id.readCyclesValue);
-		callbackPeriodView = (TextView) findViewById(R.id.callbackPeriodValue);
-		elapsedTimeView = (TextView) findViewById(R.id.elapsedTimeValue);
 		parameter1View = (SeekBar) findViewById(R.id.param1);
 
 		// Init algorithms list
@@ -108,53 +80,15 @@ public class DspActivity extends Activity {
 		audioSourceView.setOnItemSelectedListener(new AudioSourceListener());
 		audioSourceView.setSelection(1);
 
-		// Input paramteres listeners
+		// Input parameters listeners
 		parameter1View.setMax(maxParamValue);
 		parameter1View.setProgress(maxParamValue);
 		parameter1View.setOnSeekBarChangeListener(parameter1Listener);
 		
-		// This thread updates the screen with new info every 1 second.
-		swt = new SystemWatchThread(mHandler);
-		swt.start();
+		Log.e("TestActivity", "swt="+swt);
 
+		
 	}
-
-	/************************************************************************
-	 * message handler.
-	 ***********************************************************************/
-	final Handler mHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-
-			// Set values in text Views
-			if (dt != null) {
-				sampleReadTimeView.setText(String.format("%.6f",
-						dt.getSampleReadMeanTime())); // read mean time
-				sampleWriteTimeView.setText(String.format("%.6f",
-						dt.getSampleWriteMeanTime())); // write mean time
-				dspCycleTimeView.setText(String.format("%.6f",
-						dt.getDspCycleMeanTime())); // DSP cycle mean time
-				dspPeriodView
-						.setText(String.format("%.6f", dt.getBlockPeriod())); // Block
-																				// period
-				dspCyclesView.setText(Long.toString(dt.getCallbackTicks())); // # of DSP cycles
-				readCyclesView.setText(Long.toString(dt.getReadTicks())); // # of read ticks
-
-				callbackPeriodView.setText(String.format("%.6f",
-						dt.getCallbackPeriodMeanTime())); // callback period
-															// mean time
-				elapsedTimeView.setText(String.format("%.6f", dt.getElapsedTime()));
-
-				// Progress Bars
-				if (swt != null)
-					cpuUsageBar.setProgress(swt.getCpuUsage());
-				dspCycleTimeBar
-						.setProgress((int) ((dt.getDspCycleMeanTime() / dt
-								.getBlockPeriod()) * 100));
-			}
-
-		}
-	};
 
 	
 	/************************************************************************
@@ -165,8 +99,18 @@ public class DspActivity extends Activity {
 			// Threads
 			if (audioSource == 0)
 				dt = new DspThread(blockSize, dspAlgorithm);
-			else if (audioSource == 1)
-				dt = new DspThread(blockSize, dspAlgorithm, "/sdcard/DspBenchmarking/arpeggia2.wav");
+			else {
+				InputStream is = null;
+				if (audioSource == 1)
+					try {
+						is = getResources().openRawResourceFd(R.raw.alien_orifice).createInputStream();
+					} catch (NotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				dt = new DspThread(blockSize, dspAlgorithm, is);
+			}
 			dt.setParams(parameter1);
 			dt.start();
 			// mProgressStatus = (int) readUsage() * 100;

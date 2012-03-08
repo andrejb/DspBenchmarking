@@ -9,234 +9,65 @@
         android:layout_height="wrap_content"
         android:orientation="vertical" >
 
-            <CheckBox
-                android:id="@+id/toggle_dsp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="toggleDSP"
-                android:text="@string/toggle_dsp" />
+        <CheckBox
+            android:id="@+id/toggle_dsp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="toggleDSP"
+            android:text="@string/toggle_dsp" />
 
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
-
-                <TextView
-                    android:id="@+id/textView6"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/dsp_block_size" />
-
-            </LinearLayout>
-
-            <Spinner
-                android:id="@+id/dspBlockSize"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" />
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" >
 
             <TextView
-                android:id="@+id/textView12"
+                android:id="@+id/textView6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/audio_source" />
-
-            <Spinner
-                android:id="@+id/audioSource"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/textView11"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/algorithm" />
-
-            <Spinner
-                android:id="@+id/algorithm"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/textView4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/cpu_usage" />
-
-            <ProgressBar
-                android:id="@+id/cpu_usage"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:indeterminate="false"
-                android:max="100" />
-
-            <TextView
-                android:id="@+id/textView5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/dsp_cycle_time_processing" />
-
-            <ProgressBar
-                android:id="@+id/dspCycleBar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/textView10"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/param_1" />
-
-            <SeekBar
-                android:id="@+id/param1"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" />
-
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
-
-                <TextView
-                    android:id="@+id/textView9"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/elapsed_time" />
-
-                <TextView
-                    android:id="@+id/elapsedTimeValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/float_0"
-                    android:textAppearance="?android:attr/textAppearanceLarge" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
-
-                <TextView
-                    android:id="@+id/textView8"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/dsp_cycles" />
-
-                <TextView
-                    android:id="@+id/dspCyclesValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/int_0"
-                    android:textAppearance="?android:attr/textAppearanceLarge" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
-
-                <TextView
-                    android:id="@+id/textView13"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/read_cycles" />
-
-                <TextView
-                    android:id="@+id/readCyclesValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/int_0"
-                    android:textAppearance="?android:attr/textAppearanceLarge" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
-
-                <TextView
-                    android:id="@+id/textView1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/mean_sample_read_time" />
-
-                <TextView
-                    android:id="@+id/meanSampleReadTimeValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/float_0"
-                    android:textAppearance="?android:attr/textAppearanceLarge" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
-
-                <TextView
-                    android:id="@+id/textView2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/mean_sample_write_time" />
-
-                <TextView
-                    android:id="@+id/meanSampleWriteTimeValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/float_0"
-                    android:textAppearance="?android:attr/textAppearanceLarge" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
-
-                <TextView
-                    android:id="@+id/textView3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/mean_dsp_cycle_time" />
-
-                <TextView
-                    android:id="@+id/meanDspCycleTimeValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/float_0"
-                    android:textAppearance="?android:attr/textAppearanceLarge" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
-
-                <TextView
-                    android:id="@+id/textView7"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/dsp_period"
-                    android:textAppearance="?android:attr/textAppearanceSmall" />
-
-                <TextView
-                    android:id="@+id/dspPeriodValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/float_0"
-                    android:textAppearance="?android:attr/textAppearanceLarge" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
-
-                <TextView
-                    android:id="@+id/textView14"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/callback_period" />
-
-                <TextView
-                    android:id="@+id/callbackPeriodValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/float_0"
-                    android:textAppearance="?android:attr/textAppearanceLarge" />
-            </LinearLayout>
+                android:text="@string/dsp_block_size" />
         </LinearLayout>
+
+        <Spinner
+            android:id="@+id/dspBlockSize"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/textView12"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/audio_source" />
+
+        <Spinner
+            android:id="@+id/audioSource"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/textView11"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/algorithm" />
+
+        <Spinner
+            android:id="@+id/algorithm"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/textView10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/param_1" />
+
+        <SeekBar
+            android:id="@+id/param1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+
+        <include
+            android:id="@+id/dspStats"
+            layout="@layout/stats" />
+    </LinearLayout>
 
 </ScrollView>
