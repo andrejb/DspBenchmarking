@@ -1,10 +1,10 @@
-package br.usp.br.dspbenchmarking;
+package br.usp.ime.dspbenchmarking;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder.AudioSource;
 import android.os.SystemClock;
-import br.usp.br.dspbenchmarking.DspThread.DspCallback;
+import br.usp.ime.dspbenchmarking.DspThread.DspCallback;
 
 public class MicStream extends AudioStream {
 

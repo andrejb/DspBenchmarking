@@ -1,11 +1,10 @@
-package br.usp.br.dspbenchmarking;
+package br.usp.ime.dspbenchmarking;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import android.content.res.Resources.NotFoundException;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -84,10 +83,7 @@ public class DspActivity extends StatsActivity {
 		parameter1View.setMax(maxParamValue);
 		parameter1View.setProgress(maxParamValue);
 		parameter1View.setOnSeekBarChangeListener(parameter1Listener);
-		
-		Log.e("TestActivity", "swt="+swt);
-
-		
+				
 	}
 
 	

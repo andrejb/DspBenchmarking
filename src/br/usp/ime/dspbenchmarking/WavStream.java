@@ -1,4 +1,4 @@
-package br.usp.br.dspbenchmarking;
+package br.usp.ime.dspbenchmarking;
 
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import android.os.SystemClock;
 import android.util.Log;
-import br.usp.br.dspbenchmarking.DspThread.DspCallback;
+import br.usp.ime.dspbenchmarking.DspThread.DspCallback;
 
 
 public class WavStream extends AudioStream {
@@ -73,11 +73,8 @@ public class WavStream extends AudioStream {
 
 		ByteBuffer buffer = ByteBuffer.allocate(HEADER_SIZE);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
-
 		wavStream.read(buffer.array(), buffer.arrayOffset(), buffer.capacity());
-
 		buffer.rewind();
-		
 		buffer.position(buffer.position() + 20);
 		
 		//int subChunkSize = buffer.getInt();

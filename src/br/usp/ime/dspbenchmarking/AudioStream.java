@@ -1,6 +1,6 @@
-package br.usp.br.dspbenchmarking;
+package br.usp.ime.dspbenchmarking;
 
-import br.usp.br.dspbenchmarking.DspThread.DspCallback;
+import br.usp.ime.dspbenchmarking.DspThread.DspCallback;
 
 public abstract class AudioStream {
 	

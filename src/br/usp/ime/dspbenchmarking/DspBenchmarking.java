@@ -1,4 +1,4 @@
-package br.usp.br.dspbenchmarking;
+package br.usp.ime.dspbenchmarking;
 
 import android.app.Activity;
 import android.content.Intent;

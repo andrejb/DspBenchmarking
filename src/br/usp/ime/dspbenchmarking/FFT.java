@@ -1,4 +1,4 @@
-package br.usp.br.dspbenchmarking;
+package br.usp.ime.dspbenchmarking;
 
 //Fast Fourier Transform (FFT) Code
 //Java implementation by: Craig A. Lindley

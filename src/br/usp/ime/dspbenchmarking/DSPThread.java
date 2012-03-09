@@ -1,4 +1,4 @@
-package br.usp.br.dspbenchmarking;
+package br.usp.ime.dspbenchmarking;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -110,6 +110,7 @@ public class DspThread extends Thread {
 
 			} catch (IOException e) {
 				Log.e("startRecorder", "IOException: " + e);
+				e.printStackTrace();
 			}
 		else if (audioSource == AUDIO_SOURCE_MIC) {
 			// create the buffer.
@@ -209,13 +210,14 @@ public class DspThread extends Thread {
 	 * Starts the player.
 	 */
 	private void startAudioTrack() {
+		//Log.e("startAudioTrack", "audioStream="+audioStream);
 		track = new AudioTrack(AudioManager.STREAM_MUSIC, // stream type (could
 															// be
 															// STREAM_VOICECALL).
 				sampleRate, // sample rate.
 				AudioFormat.CHANNEL_OUT_MONO, // channel configuration.
 				AudioFormat.ENCODING_PCM_16BIT, // channel encoding.
-				audioStream.getMinBufferSize() * 5, // buffer size.
+				audioStream.getMinBufferSize() * 10, // buffer size.
 				AudioTrack.MODE_STREAM); // streaming or static buffer.
 		track.play();
 	}

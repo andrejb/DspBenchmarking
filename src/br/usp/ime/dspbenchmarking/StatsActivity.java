@@ -1,10 +1,9 @@
-package br.usp.br.dspbenchmarking;
+package br.usp.ime.dspbenchmarking;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -54,7 +53,9 @@ public class StatsActivity extends Activity {
 		@Override
 		public void handleMessage(Message msg) {
 			// Set values in text Views
+			//Log.e("mHandler", "received msg="+msg);
 			if (dt != null) {
+				//Log.e("mHandler", "And dt is not null.");
 				sampleReadTimeView.setText(String.format("%.6f",
 						dt.getSampleReadMeanTime())); // read mean time
 				sampleWriteTimeView.setText(String.format("%.6f",
