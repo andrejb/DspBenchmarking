@@ -19,6 +19,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 public class TestActivity extends StatsActivity {
@@ -30,6 +31,8 @@ public class TestActivity extends StatsActivity {
 	private ToggleButton toggleTests = null;
 	private ProgressBar workingBar = null;
 	private ProgressBar progressBar = null;
+	private TextView algorithmName = null;
+	private TextView blockSize = null;
 
 	// Output file specifications
 	final String dirName = "DspBenchmarking";
@@ -62,6 +65,10 @@ public class TestActivity extends StatsActivity {
 
 		// Find progress bar
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
+		// Find algorithm and block info
+		algorithmName = (TextView) findViewById(R.id.algorithmName);
+		blockSize = (TextView) findViewById(R.id.blockSize);
 	}
 
 	/**
@@ -116,6 +123,19 @@ public class TestActivity extends StatsActivity {
 	}
 
 	/**
+	 *
+	 */
+	void updateScreenInfo(int bsize, int algorithm) {
+		if (algorithm == 0)
+			algorithmName.setText("Loopback:  ");
+		else if (algorithm == 1)
+			algorithmName.setText("Reverb:  ");
+		else if (algorithm == 2)
+			algorithmName.setText("FFT:  ");
+		blockSize.setText(String.valueOf(bsize));
+	}
+
+	/**
 	 * 
 	 * @return
 	 */
@@ -128,6 +148,10 @@ public class TestActivity extends StatsActivity {
 		return sbuf.toString();
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	private String getBuildInfo() {
 		StringBuffer sbuf = new StringBuffer();
 		sbuf.append("# board: " + Build.BOARD + "\n");
@@ -171,6 +195,7 @@ public class TestActivity extends StatsActivity {
 	 */
 	private void releaseDspThread() {
 		if (dt != null) {
+			dt.releaseIO();
 			dt.stopRunning();
 			dt = null;
 		}
@@ -215,54 +240,75 @@ public class TestActivity extends StatsActivity {
 			// Get input stream
 			try {
 
+				// Iterate through algorithms
+				final int START = 2;
+				final int END = 2;
+				for (int alg = START; alg <= END; alg++) {
+					Log.i("DSP TEST", "init algorithm " + alg);
 
-				// Iterate through power of 2 blocks
-				for (int i = 6; i <= 13; i++) {
-					// run tests
-					Log.e("Tests", "init test with block = "+Math.pow(2,i));
-					
-					InputStream is = getResources().openRawResourceFd(R.raw.alien_orifice)
-							.createInputStream();
-					is.mark(2000000);
-					
-					performTest((int) Math.pow(2, i), 1, is);
+					// Iterate through power of 2 blocks
+					for (int i = 4; i <= 13; i++) {
+						// updateScreenInfo((int) Math.pow(2, i), alg);
 
-					// Wait for tests to end
-					while (dt.isRunning())
+						// Sends message for updating screen info
+						Message msg = mHandler.obtainMessage();
+						Bundle b = new Bundle();
+						b.putString("action", "update-screen");
+						b.putInt("block-size", (int) Math.pow(2, i));
+						b.putInt("algorithm", alg);
+						msg.setData(b);
+						mHandler.sendMessage(msg);
+
+						// run tests
+						Log.i("DSP TEST", "init block size = " + Math.pow(2, i));
+						//InputStream is = null;
+						//if (i % 2 == 0) {
+						//	is = getResources().openRawResourceFd(
+						//			R.raw.alien_orifice).createInputStream();
+						//	performTest((int) Math.pow(2, i), alg, is);
+						//} else {
+							performTest((int) Math.pow(2, i), alg);
+						//}
+
+						// Wait for tests to end
+						while (dt.isRunning())
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException e) {
+								Log.e("ERROR", "Thread was Interrupted");
+							}
+
+						// Write results to file
 						try {
-							Thread.sleep(100);
+							os.write(getDspThreadInfo(alg));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+
+						// Close input stream
+						//if (i % 2 == 0) {
+						//	is.close();
+						//	is = null;
+						//}
+						releaseDspThread();
+						try {
+							Thread.sleep(5000);
+						} catch (InterruptedException e) {
+							Log.e("ERROR", "Thread was Interrupted");
+						}
+						System.gc();
+						// wait for garbage collector
+						try {
+							Thread.sleep(5000);
 						} catch (InterruptedException e) {
 							Log.e("ERROR", "Thread was Interrupted");
 						}
 
-					// Write results to file
-					try {
-						os.write(getDspThreadInfo());
-					} catch (IOException e) {
-						e.printStackTrace();
+						// increase status bar
+						progressBar
+								.setProgress((int) ((double) (i - 3) * 100.0 / 10));
 					}
-					
-					// Close input stream
-					is.close();
-					is = null;
-					releaseDspThread();
-					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-						Log.e("ERROR", "Thread was Interrupted");
-					}
-					System.gc();
-					// wait for garbage collector
-					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-						Log.e("ERROR", "Thread was Interrupted");
-					}
-					
-					// increase status bar
-					progressBar.setProgress((int) ((double) (i-5) * 100.0 / 8));
 				}
-
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -278,8 +324,15 @@ public class TestActivity extends StatsActivity {
 			// Turn off when done.
 			Message msg = mHandler.obtainMessage();
 			Bundle b = new Bundle();
+			b.putString("action", "turn-off");
 			msg.setData(b);
 			mHandler.sendMessage(msg);
+		}
+
+		private void performTest(int bSize, int algorithm) {
+			dt = new DspThread(bSize, algorithm, MAX_DSP_CYCLES);
+			dt.setParams(0.5);
+			dt.start();
 		}
 
 		private void performTest(int bSize, int algorithm, InputStream is) {
@@ -287,26 +340,26 @@ public class TestActivity extends StatsActivity {
 			dt.setParams(0.5);
 			dt.start();
 		}
-		
+
 		/**
 		 * Generates a byte array with statistics from the DSP thread
+		 * 
 		 * @return
 		 */
-		private byte[] getDspThreadInfo() {
-			String output = "";
-			output += dt.getBlockSize() + " ";
-			output += dt.getElapsedTime() + " ";
-			output += dt.getCallbackTicks() + " ";
-			output += dt.getReadTicks() + " ";
-			output += dt.getSampleReadMeanTime() + " ";
-			output += dt.getSampleWriteMeanTime() + " ";
-			output += dt.getDspCycleMeanTime() + " ";
-			output += dt.getBlockPeriod() + " ";
-			output += dt.getCallbackPeriodMeanTime() + "\n";
+		private byte[] getDspThreadInfo(int algorithm) {
+			String output = "" + algorithm + " "; 				// 1
+			output += dt.getBlockSize() + " "; 					// 2
+			output += dt.getElapsedTime() + " "; 				// 3
+			output += dt.getCallbackTicks() + " ";				// 4
+			output += dt.getReadTicks() + " "; 					// 5
+			output += dt.getSampleReadMeanTime() + " "; 		// 6
+			output += dt.getSampleWriteMeanTime() + " ";		// 7
+			output += dt.getDspCycleMeanTime() + " "; 			// 8
+			output += dt.getBlockPeriod() + " "; 				// 9
+			output += dt.getCallbackPeriodMeanTime() + "\n"; 	// 10
 			return output.getBytes();
 		}
 	}
-	
 
 	/************************************************************************
 	 * message handler.
@@ -314,7 +367,14 @@ public class TestActivity extends StatsActivity {
 	final Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			turnOff();
+			String action = msg.getData().getString("action");
+			if (action.equals("turn-off"))
+				turnOff();
+			else if (action.equals("update-screen")) {
+				int algorithm = msg.getData().getInt("algorithm");
+				int blockSize = msg.getData().getInt("block-size");
+				updateScreenInfo(blockSize, algorithm);
+			}
 		}
 	};
 

@@ -245,7 +245,7 @@ public class WavStream extends AudioStream {
 			// sampleRate))
 			// stopRunning();
 		}
-		// hang on untill DSP toggles.
+		// hang on until DSP toggles.
 		while (isRunning)
 			try {
 				Thread.sleep(100);
@@ -254,12 +254,17 @@ public class WavStream extends AudioStream {
 			}
 	}
 	
+	/**
+	 * 
+	 */
 	public void stopRunning() {
 		isRunning = false;
 		dspHandle.cancel(true);
 	}
 
-
+	/**
+	 * 
+	 */
 	@Override
 	protected int getMinBufferSize() {
 		return 4096;

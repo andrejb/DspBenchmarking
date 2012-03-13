@@ -25,8 +25,8 @@
     <string-array name="algorithm_array">
         <item>Loopback</item>
         <item>Reverb</item>
-        <item>Phase Vocoder</item>
         <item>FFT</item>
+        <item>Phase Vocoder</item>
     </string-array>
     
   	<string-array name="block_size_array">

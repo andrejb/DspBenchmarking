@@ -54,39 +54,46 @@ public class StatsActivity extends Activity {
 		public void handleMessage(Message msg) {
 			// Set values in text Views
 			//Log.e("mHandler", "received msg="+msg);
-			if (dt != null) {
+			if (dt != null)
 				//Log.e("mHandler", "And dt is not null.");
 				sampleReadTimeView.setText(String.format("%.6f",
 						dt.getSampleReadMeanTime())); // read mean time
+			if (dt != null)
 				sampleWriteTimeView.setText(String.format("%.6f",
 						dt.getSampleWriteMeanTime())); // write mean time
+			if (dt != null)
 				dspCycleTimeView.setText(String.format("%.6f",
 						dt.getDspCycleMeanTime())); // DSP cycle mean time
+			if (dt != null)
 				dspPeriodView
 						.setText(String.format("%.6f", dt.getBlockPeriod())); // Block
 																				// period
+			if (dt != null)
 				dspCyclesView.setText(Long.toString(dt.getCallbackTicks())); // #
 																				// of
 																				// DSP
 																				// cycles
+			if (dt != null)
 				readCyclesView.setText(Long.toString(dt.getReadTicks())); // #
 																			// of
 																			// read
 																			// ticks
-
+			if (dt != null)
 				callbackPeriodView.setText(String.format("%.6f",
 						dt.getCallbackPeriodMeanTime())); // callback period
 															// mean time
+			if (dt != null)
 				elapsedTimeView.setText(String.format("%.6f",
 						dt.getElapsedTime()));
 
-				// Progress Bars
-				if (swt != null)
-					cpuUsageBar.setProgress(swt.getCpuUsage());
+			// Progress Bars
+			if (swt != null)
+				cpuUsageBar.setProgress(swt.getCpuUsage());
+			
+			if (dt != null)
 				dspCycleTimeBar
-						.setProgress((int) ((dt.getDspCycleMeanTime() / dt
-								.getBlockPeriod()) * 100));
-			}
+					.setProgress((int) ((dt.getDspCycleMeanTime() / dt
+							.getBlockPeriod()) * 100));
 
 		}
 	};

@@ -8,6 +8,7 @@ public class PhaseVocoder extends DspAlgorithm {
 	private double last_phase[];
 	private double ind[];
 	private double deltak[];
+	private FFT fft;
 	
 	private static final double TWOPI = 2.0 * Math.PI;
 	
@@ -24,6 +25,7 @@ public class PhaseVocoder extends DspAlgorithm {
 			last_phase[i] = 0;
 			ind[i] = 0;
 		}
+		fft = new FFT((int) (Math.log10(getBlockSize()) / Math.log10(2)));
 	}
 
 	@Override
@@ -73,7 +75,6 @@ public class PhaseVocoder extends DspAlgorithm {
 	}
 
 	private void FFT(double real[], double imag[], boolean flagInvert) {
-		FFT fft = new FFT((int) Math.log10(getBlockSize() / Math.log10(2)));
 		fft.doFFT(real, imag, flagInvert);
 	}
 	

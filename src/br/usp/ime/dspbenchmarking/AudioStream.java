@@ -25,7 +25,7 @@ public abstract class AudioStream {
 	}
 	
 	public long getReadTicks() {
-		return callbackPeriod;
+		return readTicks;
 	}
 	
 	public long getSampleReadTime() {

@@ -54,6 +54,11 @@ public class DspThread extends Thread {
 		Init(bSize, algorithm, null, AUDIO_SOURCE_MIC);
 	}
 
+	DspThread(int bSize, int algorithm, int cycles) {
+		maxDspCycles = cycles;
+		Init(bSize, algorithm, null, AUDIO_SOURCE_MIC);
+	}
+	
 	/**
 	 * Creates a DSP Thread with file input
 	 * 
@@ -136,6 +141,8 @@ public class DspThread extends Thread {
 		else if (algorithm == 1)
 			dspAlgorithm = new Reverb(sampleRate, blockSize);
 		else if (algorithm == 2)
+			dspAlgorithm = new FftAlgorithm(sampleRate, blockSize);
+		else if (algorithm == 3)
 			dspAlgorithm = new PhaseVocoder(sampleRate, blockSize);
 		setParams(parameter1);
 	}
@@ -196,12 +203,10 @@ public class DspThread extends Thread {
 			startTime = SystemClock.uptimeMillis();
 			audioStream.readLoop(buffer);
 			// free audio resources.
-			releaseIO();
 
 		} catch (Throwable x) {
 			Log.w("Audio", "Error reading voice audio", x);
 		} finally {
-			releaseIO();
 		}
 
 	}
@@ -227,7 +232,7 @@ public class DspThread extends Thread {
 	 * 
 	 * @return
 	 */
-	private boolean releaseIO() {
+	public boolean releaseIO() {
 		if (isRunning == true)
 			return false;
 		if (audioStream != null) {
@@ -250,7 +255,8 @@ public class DspThread extends Thread {
 		if (isRunning == false)
 			return false;
 		isRunning = false;
-		audioStream.stopRunning();
+		if (audioStream != null)
+			audioStream.stopRunning();
 		return true;
 	}
 
@@ -269,13 +275,13 @@ public class DspThread extends Thread {
 	}
 
 	// getter
-	public float getSampleWriteMeanTime() {
-		return (float) sampleWriteTime / callbackTicks;
+	public double getSampleWriteMeanTime() {
+		return (double) sampleWriteTime / callbackTicks;
 	}
 
 	// getter
-	public float getDspCycleMeanTime() {
-		return (float) dspCycleTime / callbackTicks;
+	public double getDspCycleMeanTime() {
+		return (double) dspCycleTime / callbackTicks;
 	}
 
 	// getter
@@ -310,12 +316,12 @@ public class DspThread extends Thread {
 
 	// getter
 	public double getBlockPeriod() {
-		return ((double) blockSize) / sampleRate * 1000;
+		return (double) blockSize / sampleRate * 1000;
 	}
 
 	// getter
-	public float getElapsedTime() {
-		return (float) elapsedTime;
+	public double getElapsedTime() {
+		return (double) elapsedTime;
 	}
 	
 	public boolean isRunning() {
