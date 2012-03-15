@@ -22,7 +22,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-public class TestActivity extends StatsActivity {
+public class TestActivity extends DspActivity {
 
 	// Test config
 	private static final int MAX_DSP_CYCLES = 100;

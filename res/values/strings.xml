@@ -4,7 +4,7 @@
     <string name="dsp">DSP</string>
     <string name="app_name">DSP Benchmarking</string>
     <string name="quit">Sair</string>
-    <string name="toggle_dsp">Ativar o DSP</string>
+    <string name="toggle_dsp">Compute audio</string>
     <string name="mean_sample_write_time">"Mean sample write time:  "</string>
     <string name="mean_sample_read_time">"Mean sample read time:  "</string>
     <string name="mean_dsp_cycle_time">"Mean DSP cycle time:  "</string>

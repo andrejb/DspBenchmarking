@@ -22,12 +22,12 @@ public class DspBenchmarking extends Activity {
         pb.setProgress(40);
     }
     
-    public void startDSP(View v){
-    	Intent dsp_intent = new Intent(DspBenchmarking.this, DspActivity.class);
+    public void startLiveActivity(View v){
+    	Intent dsp_intent = new Intent(DspBenchmarking.this, LiveActivity.class);
     	DspBenchmarking.this.startActivity(dsp_intent);
     }
     
-    public void startTests(View v) {
+    public void startTestActivity(View v) {
     	Intent test_intent = new Intent(DspBenchmarking.this, TestActivity.class);
     	DspBenchmarking.this.startActivity(test_intent);
     }

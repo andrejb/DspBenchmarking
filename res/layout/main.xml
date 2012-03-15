@@ -7,14 +7,14 @@
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:onClick="startDSP"
+        android:onClick="startLiveActivity"
         android:text="@string/dsp" />
 
     <Button
         android:id="@+id/button1"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:onClick="startTests"
+        android:onClick="startTestAcitivity"
         android:text="@string/dsp_benchmarking" />
 
     <ProgressBar
