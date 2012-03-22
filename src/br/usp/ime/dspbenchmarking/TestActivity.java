@@ -241,7 +241,7 @@ public class TestActivity extends DspActivity {
 			try {
 
 				// Iterate through algorithms
-				final int START = 2;
+				final int START = 0;
 				final int END = 2;
 				for (int alg = START; alg <= END; alg++) {
 					Log.i("DSP TEST", "init algorithm " + alg);
@@ -261,13 +261,13 @@ public class TestActivity extends DspActivity {
 
 						// run tests
 						Log.i("DSP TEST", "init block size = " + Math.pow(2, i));
-						//InputStream is = null;
+						InputStream is = null;
 						//if (i % 2 == 0) {
-						//	is = getResources().openRawResourceFd(
-						//			R.raw.alien_orifice).createInputStream();
-						//	performTest((int) Math.pow(2, i), alg, is);
+							is = getResources().openRawResourceFd(
+									R.raw.alien_orifice).createInputStream();
+							performTest((int) Math.pow(2, i), alg, is);
 						//} else {
-							performTest((int) Math.pow(2, i), alg);
+						//	performTest((int) Math.pow(2, i), alg);
 						//}
 
 						// Wait for tests to end
@@ -287,8 +287,8 @@ public class TestActivity extends DspActivity {
 
 						// Close input stream
 						//if (i % 2 == 0) {
-						//	is.close();
-						//	is = null;
+							is.close();
+							is = null;
 						//}
 						releaseDspThread();
 						try {

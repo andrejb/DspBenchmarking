@@ -14,7 +14,7 @@
         android:id="@+id/button1"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:onClick="startTestAcitivity"
+        android:onClick="startTestActivity"
         android:text="@string/dsp_benchmarking" />
 
     <ProgressBar
