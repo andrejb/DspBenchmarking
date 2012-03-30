@@ -48,14 +48,14 @@ public class TestActivity extends DspActivity {
 	
 	// DSP stuff
 	InputStream is;
-	int blockSize;
-	int algorithm;
 	
 	// Test limits
 	static int startBlockSize = (int) Math.pow(2,6);
 	static int endBlockSize = (int) Math.pow(2,13);
 	static int startAlgorithm = 0;
 	static int endAlgorithm = 2;
+	int blockSize = startBlockSize;
+	int algorithm = startAlgorithm;
 	
 
 	/**
@@ -247,6 +247,8 @@ public class TestActivity extends DspActivity {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		Log.i("launchTest", "blockSize="+blockSize);
+		Log.i("launchTest", "algorithm="+algorithm);
 		dt = new DspThread(blockSize, algorithm, is, MAX_DSP_CYCLES);
 		dt.setParams(0.5);
 		dt.start();
@@ -271,8 +273,6 @@ public class TestActivity extends DspActivity {
 		}
 		is = null;
 		releaseDspThread();
-		blockSize++;
-		algorithm++;
 	}
 	
 	/**
@@ -332,8 +332,6 @@ public class TestActivity extends DspActivity {
 					Log.i("DSP TEST", "init algorithm " + alg);
 					// Iterate through power of 2 blocks
 					for (int bSize = startBlockSize; bSize <= endBlockSize; bSize *= 2) {
-						Log.e("vou mandar", "aqyu");
-
 						// Sends message for starting a new test
 						Message msg = mHandler.obtainMessage();
 						Bundle b = new Bundle();
@@ -343,14 +341,12 @@ public class TestActivity extends DspActivity {
 						msg.setData(b);
 						mHandler.sendMessage(msg);
 						
-						Log.e("enviei", "aqyu");
 						// wait for test to start
 						try {
 							Thread.sleep(1000);
 						} catch (InterruptedException e) {
 							Log.e("ERROR", "Thread was Interrupted");
 						}
-						Log.e("comecando a esperar", "aqyu");
 
 						// run tests
 						Log.i("DSP TEST", "init block size = " + bSize);
@@ -361,7 +357,6 @@ public class TestActivity extends DspActivity {
 							} catch (InterruptedException e) {
 								Log.e("ERROR", "Thread was Interrupted");
 							}
-						Log.e("terminando de esperar", "aqyu");
 
 						// Sends message for starting a new test
 						msg = mHandler.obtainMessage();
@@ -415,8 +410,8 @@ public class TestActivity extends DspActivity {
 			if (action.equals("finish-tests"))
 				finishTests();
 			else if (action.equals("launch-test")) {
-				int algorithm = msg.getData().getInt("algorithm");
-				int blockSize = msg.getData().getInt("block-size");
+				algorithm = msg.getData().getInt("algorithm");
+				blockSize = msg.getData().getInt("block-size");
 				updateScreenInfo(blockSize, algorithm);
 				launchTest();
 			} else if (action.equals("release-test")) {
