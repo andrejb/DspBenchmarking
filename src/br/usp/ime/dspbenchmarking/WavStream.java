@@ -73,7 +73,8 @@ public class WavStream extends AudioStream {
 
 		ByteBuffer buffer = ByteBuffer.allocate(HEADER_SIZE);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
-		wavStream.read(buffer.array(), buffer.arrayOffset(), buffer.capacity());
+		int r = wavStream.read(buffer.array(), buffer.arrayOffset(), buffer.capacity());
+		Log.i("readHeader", "read="+r);
 		buffer.rewind();
 		buffer.position(buffer.position() + 20);
 		
@@ -102,6 +103,7 @@ public class WavStream extends AudioStream {
 		}
 		dataSizeInBytes = buffer.getInt();
 		checkFormat(dataSizeInBytes > 0, "wrong datasize: " + dataSizeInBytes);
+		Log.i("readHeader", "size="+dataSizeInBytes);
 
 		wavStream.reset();
 		wavStream.mark(HEADER_SIZE + dataSizeInBytes);
@@ -116,9 +118,21 @@ public class WavStream extends AudioStream {
 		int shortBlocks = (int) Math.ceil(((float) dataSizeInBytes / 2) / blockSize) + 2;
 		ByteBuffer buffer = ByteBuffer.allocate(shortBlocks * 2 * blockSize);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
-		wavStream.skip(HEADER_SIZE);
-		wavStream.read(buffer.array(), 0, shortBlocks * 2 * blockSize);
+		long s = wavStream.skip(HEADER_SIZE);
+		Log.i("initWavPcm", "skipped="+s);
+
+		int r = wavStream.read(buffer.array(), 0, shortBlocks * 2 * blockSize);
+		Log.i("initWavPcm", "read="+r);
+		Log.i("initWavPcm", "blockSize="+blockSize);
+
 		buffer.rewind();
+		Log.e("initWavPcm", "byte="+buffer.get());
+		Log.e("initWavPcm", "byte="+buffer.get());
+
+		Log.e("initWavPcm", "byte="+buffer.get());
+
+		Log.e("initWavPcm", "byte="+buffer.get());
+
 		buffer.position(HEADER_SIZE);
 		dataBuffer = buffer.asShortBuffer();
 		dataBuffer.mark();

@@ -91,6 +91,9 @@ public class DspThread extends Thread {
 	 * @param algorithm
 	 */
 	private void Init(int bSize, int algorithm, InputStream stream, int source) {
+		Log.i("DspThread init", "bSize="+bSize);
+		Log.i("DspThread init", "algorithm="+algorithm);
+
 		// sets higher priority for real time purposes
 		inputStream = stream;
 		audioSource = source;
