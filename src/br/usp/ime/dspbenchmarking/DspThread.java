@@ -29,7 +29,8 @@ public class DspThread extends Thread {
 
 	// Time tracking variables
 	private long sampleWriteTime = 0; // sum of time needed to write samples
-	private long dspCycleTime = 0; // sum of dsp cycle times
+	private long dspPerformTime = 0; // sum of dsp perform routine times
+	private long dspCallbackTime = 0;  // sum of dsp callback times
 	private final int sampleRate = 44100; // the system sample rate
 	private int blockSize = 64; // the block period in samples
 	private long callbackTicks = 0; // how many times DSP callback ran
@@ -165,6 +166,7 @@ public class DspThread extends Thread {
 		public void run() {
 			// private void dspCallback(int wrap) {
 			callbackTicks++;
+			long time0 = SystemClock.uptimeMillis();
 			// Convert from PCM shorts to doubles
 			double[] performBuffer = new double[blockSize];
 			for (int i = 0; i < blockSize; i++)
@@ -173,7 +175,7 @@ public class DspThread extends Thread {
 			// calls DSP perform for selected algorithm
 			time1 = SystemClock.uptimeMillis();
 			dspAlgorithm.perform(performBuffer);
-			dspCycleTime += (SystemClock.uptimeMillis() - time1);
+			dspPerformTime += (SystemClock.uptimeMillis() - time1);
 			// Convert from doubles to PCM shorts
 			for (int i = 0; i < blockSize; i++)
 				buffer[(jx % wrap) * blockSize + i] = (short) (performBuffer[i] * 65536);
@@ -186,6 +188,7 @@ public class DspThread extends Thread {
 			sampleWriteTime += (SystemClock.uptimeMillis() - time1);
 			elapsedTime = SystemClock.uptimeMillis() - startTime;
 			
+			dspCallbackTime += SystemClock.uptimeMillis() - time0;
 			// Stop if reaches maximum of dsp cycles
 			if (callbackTicks == maxDspCycles)
 				stopRunning();
@@ -283,8 +286,13 @@ public class DspThread extends Thread {
 	}
 
 	// getter
-	public double getDspCycleMeanTime() {
-		return (double) dspCycleTime / callbackTicks;
+	public double getDspPerformMeanTime() {
+		return (double) dspPerformTime / callbackTicks;
+	}
+	
+	// getter
+	public double getDspCallbackMeanTime() {
+		return (double) dspCallbackTime / callbackTicks;
 	}
 
 	// getter

@@ -14,7 +14,7 @@ public class DspActivity extends Activity {
 	private ProgressBar dspCycleTimeBar = null;
 	private TextView sampleReadTimeView = null;
 	private TextView sampleWriteTimeView = null;
-	private TextView dspCycleTimeView = null;
+	private TextView dspCallbackTimeView = null;
 	private TextView dspPeriodView = null;
 	private TextView dspCyclesView = null;
 	private TextView readCyclesView = null;
@@ -33,7 +33,7 @@ public class DspActivity extends Activity {
 		cpuUsageBar = (ProgressBar) findViewById(R.id.cpu_usage);
 		sampleReadTimeView = (TextView) findViewById(R.id.meanSampleReadTimeValue);
 		sampleWriteTimeView = (TextView) findViewById(R.id.meanSampleWriteTimeValue);
-		dspCycleTimeView = (TextView) findViewById(R.id.meanDspCycleTimeValue);
+		dspCallbackTimeView = (TextView) findViewById(R.id.meanDspCycleTimeValue);
 		dspCycleTimeBar = (ProgressBar) findViewById(R.id.dspCycleBar);
 		dspPeriodView = (TextView) findViewById(R.id.dspPeriodValue);
 		dspCyclesView = (TextView) findViewById(R.id.dspCyclesValue);
@@ -62,8 +62,8 @@ public class DspActivity extends Activity {
 						dt.getSampleWriteMeanTime()));
 			// set DSP cycle mean time
 			if (dt != null)
-				dspCycleTimeView.setText(String.format("%.6f",
-						dt.getDspCycleMeanTime()));
+				dspCallbackTimeView.setText(String.format("%.6f",
+						dt.getDspCallbackMeanTime()));
 			// set block period
 			if (dt != null)
 				dspPeriodView
@@ -88,7 +88,7 @@ public class DspActivity extends Activity {
 			// set amount of DSP cycle used with processing
 			if (dt != null)
 				dspCycleTimeBar
-					.setProgress((int) ((dt.getDspCycleMeanTime() / dt
+					.setProgress((int) ((dt.getDspCallbackMeanTime() / dt
 							.getBlockPeriod()) * 100));
 
 		}

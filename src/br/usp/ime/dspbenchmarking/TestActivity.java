@@ -45,10 +45,10 @@ public class TestActivity extends DspActivity {
 	BroadcastReceiver mExternalStorageReceiver;
 	boolean mExternalStorageAvailable = false;
 	boolean mExternalStorageWriteable = false;
-	
+
 	// DSP stuff
 	InputStream is;
-	
+
 	// Test limits
 	static int startBlockSize = (int) Math.pow(2,6);
 	static int endBlockSize = (int) Math.pow(2,13);
@@ -56,7 +56,7 @@ public class TestActivity extends DspActivity {
 	static int endAlgorithm = 2;
 	int blockSize = startBlockSize;
 	int algorithm = startAlgorithm;
-	
+
 
 	/**
 	 * 
@@ -163,34 +163,6 @@ public class TestActivity extends DspActivity {
 
 	/**
 	 * 
-	 * @return
-	 */
-	private String getBuildInfo() {
-		StringBuffer sbuf = new StringBuffer();
-		sbuf.append("# board: " + Build.BOARD + "\n");
-		// sbuf.append("# bootloader: "+Build.BOOTLOADER+"\n");
-		sbuf.append("# brand: " + Build.BRAND + "\n");
-		sbuf.append("# cpu_abi: " + Build.CPU_ABI + "\n");
-		// sbuf.append("# cpu_abi2: "+Build.CPU_ABI2+"\n");
-		sbuf.append("# device: " + Build.DEVICE + "\n");
-		sbuf.append("# display: " + Build.DISPLAY + "\n");
-		sbuf.append("# fingerprint: " + Build.FINGERPRINT + "\n");
-		// sbuf.append("# hardware: "+Build.HARDWARE+"\n");
-		sbuf.append("# host: " + Build.HOST + "\n");
-		sbuf.append("# id: " + Build.ID + "\n");
-		sbuf.append("# manufacturer: " + Build.MANUFACTURER + "\n");
-		sbuf.append("# model: " + Build.MODEL + "\n");
-		sbuf.append("# product: " + Build.PRODUCT + "\n");
-		// sbuf.append("# serial: "+Build.SERIAL+"\n");
-		sbuf.append("# tags: " + Build.TAGS + "\n");
-		sbuf.append("# time: " + Build.TIME + "\n");
-		sbuf.append("# type: " + Build.TYPE + "\n");
-		sbuf.append("# user: " + Build.USER + "\n");
-		return sbuf.toString();
-	}
-
-	/**
-	 * 
 	 * @param v
 	 */
 	public void toggleTests(View v) {
@@ -232,7 +204,7 @@ public class TestActivity extends DspActivity {
 		TestThread mt = new TestThread(mHandler);
 		mt.start();
 	}
-	
+
 	/**
 	 * 
 	 * @param bSize
@@ -253,8 +225,8 @@ public class TestActivity extends DspActivity {
 		dt.setParams(0.5);
 		dt.start();
 	}
-	
-	
+
+
 	/**
 	 * 
 	 */
@@ -274,7 +246,7 @@ public class TestActivity extends DspActivity {
 		is = null;
 		releaseDspThread();
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -287,24 +259,54 @@ public class TestActivity extends DspActivity {
 		}
 		turnOff();
 	}
-	
-	
+
+	/**
+	 * 
+	 * @return
+	 */
+	private String getBuildInfo() {
+		StringBuffer sbuf = new StringBuffer();
+		sbuf.append("# board: " + Build.BOARD + "\n");
+		// sbuf.append("# bootloader: "+Build.BOOTLOADER+"\n");
+		sbuf.append("# brand: " + Build.BRAND + "\n");
+		sbuf.append("# cpu_abi: " + Build.CPU_ABI + "\n");
+		// sbuf.append("# cpu_abi2: "+Build.CPU_ABI2+"\n");
+		sbuf.append("# device: " + Build.DEVICE + "\n");
+		sbuf.append("# display: " + Build.DISPLAY + "\n");
+		sbuf.append("# fingerprint: " + Build.FINGERPRINT + "\n");
+		// sbuf.append("# hardware: "+Build.HARDWARE+"\n");
+		sbuf.append("# host: " + Build.HOST + "\n");
+		sbuf.append("# id: " + Build.ID + "\n");
+		sbuf.append("# manufacturer: " + Build.MANUFACTURER + "\n");
+		sbuf.append("# model: " + Build.MODEL + "\n");
+		sbuf.append("# product: " + Build.PRODUCT + "\n");
+		// sbuf.append("# serial: "+Build.SERIAL+"\n");
+		sbuf.append("# tags: " + Build.TAGS + "\n");
+		sbuf.append("# time: " + Build.TIME + "\n");
+		sbuf.append("# type: " + Build.TYPE + "\n");
+		sbuf.append("# user: " + Build.USER + "\n\n");
+		sbuf.append("# bsize time  cbt readt sampread sampwrit blockper cbperiod perftime calltime\n");
+		return sbuf.toString();
+	}
+
+
 	/**
 	 * Generates a byte array with statistics from the DSP thread
 	 * 
 	 * @return
 	 */
 	private byte[] getDspThreadInfo(int algorithm) {
-		String output = "" + algorithm + " "; 				// 1
-		output += dt.getBlockSize() + " "; 					// 2
-		output += dt.getElapsedTime() + " "; 				// 3
-		output += dt.getCallbackTicks() + " ";				// 4
-		output += dt.getReadTicks() + " "; 					// 5
-		output += dt.getSampleReadMeanTime() + " "; 		// 6
-		output += dt.getSampleWriteMeanTime() + " ";		// 7
-		output += dt.getDspCycleMeanTime() + " "; 			// 8
-		output += dt.getBlockPeriod() + " "; 				// 9
-		output += dt.getCallbackPeriodMeanTime() + "\n"; 	// 10
+		String output = "" + algorithm + " "; 								// 1  - alg
+		output += String.format("%5d ", dt.getBlockSize()); 				// 2  - bsize
+		output += String.format("%5.0f ", dt.getElapsedTime()); 			// 3  - time
+		output += String.format("%3d ", dt.getCallbackTicks());				// 4  - cbt
+		output += String.format("%5d ", dt.getReadTicks());					// 5  - read tics
+		output += String.format("%8.4f ", dt.getSampleReadMeanTime());		// 6  - sample read
+		output += String.format("%8.4f ", dt.getSampleWriteMeanTime());		// 7  - sample write
+		output += String.format("%8.4f ", dt.getBlockPeriod());				// 8  - block period (calculated)
+		output += String.format("%8.4f ", dt.getCallbackPeriodMeanTime());	// 9  - callback period
+		output += String.format("%8.4f ", dt.getDspPerformMeanTime());		// 10 - perform time
+		output += String.format("%8.4f \n", dt.getDspCallbackMeanTime());	// 11 - callback time
 		return output.getBytes();
 	}
 
@@ -328,59 +330,61 @@ public class TestActivity extends DspActivity {
 			// Get input stream
 			try {
 				// Iterate through algorithms
-				for (int alg = startAlgorithm; alg <= endAlgorithm; alg++) {
-					Log.i("DSP TEST", "init algorithm " + alg);
-					// Iterate through power of 2 blocks
-					for (int bSize = startBlockSize; bSize <= endBlockSize; bSize *= 2) {
-						// Sends message for starting a new test
-						Message msg = mHandler.obtainMessage();
-						Bundle b = new Bundle();
-						b.putString("action", "launch-test");
-						b.putInt("block-size", bSize);
-						b.putInt("algorithm", alg);
-						msg.setData(b);
-						mHandler.sendMessage(msg);
-						
-						// wait for test to start
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-							Log.e("ERROR", "Thread was Interrupted");
-						}
+				for (int i=0; i<3; i++) {
+					for (int alg = startAlgorithm; alg <= endAlgorithm; alg++) {
+						Log.i("DSP TEST", "init algorithm " + alg);
+						// Iterate through power of 2 blocks
+						for (int bSize = startBlockSize; bSize <= endBlockSize; bSize *= 2) {
+							// Sends message for starting a new test
+							Message msg = mHandler.obtainMessage();
+							Bundle b = new Bundle();
+							b.putString("action", "launch-test");
+							b.putInt("block-size", bSize);
+							b.putInt("algorithm", alg);
+							msg.setData(b);
+							mHandler.sendMessage(msg);
 
-						// run tests
-						Log.i("DSP TEST", "init block size = " + bSize);
-						// Wait for tests to end
-						while (dt.isRunning())
+							// wait for test to start
 							try {
-								Thread.sleep(100);
+								Thread.sleep(1000);
 							} catch (InterruptedException e) {
 								Log.e("ERROR", "Thread was Interrupted");
 							}
 
-						// Sends message for starting a new test
-						msg = mHandler.obtainMessage();
-						b = new Bundle();
-						b.putString("action", "release-test");
-						msg.setData(b);
-						mHandler.sendMessage(msg);
+							// run tests
+							Log.i("DSP TEST", "init block size = " + bSize);
+							// Wait for tests to end
+							while (dt.isRunning())
+								try {
+									Thread.sleep(100);
+								} catch (InterruptedException e) {
+									Log.e("ERROR", "Thread was Interrupted");
+								}
 
-						try {
-							Thread.sleep(5000);
-						} catch (InterruptedException e) {
-							Log.e("ERROR", "Thread was Interrupted");
-						}
-						System.gc();
-						// wait for garbage collector
-						try {
-							Thread.sleep(5000);
-						} catch (InterruptedException e) {
-							Log.e("ERROR", "Thread was Interrupted");
-						}
+							// Sends message for starting a new test
+							msg = mHandler.obtainMessage();
+							b = new Bundle();
+							b.putString("action", "release-test");
+							msg.setData(b);
+							mHandler.sendMessage(msg);
 
-						// increase status bar
-						progressBar
-								.setProgress((int) ((Math.log(bSize) / Math.log(2)-3) * 100.0 / 10));
+							try {
+								Thread.sleep(5000);
+							} catch (InterruptedException e) {
+								Log.e("ERROR", "Thread was Interrupted");
+							}
+							System.gc();
+							// wait for garbage collector
+							try {
+								Thread.sleep(5000);
+							} catch (InterruptedException e) {
+								Log.e("ERROR", "Thread was Interrupted");
+							}
+
+							// increase status bar
+							progressBar
+							.setProgress((int) ((Math.log(bSize) / Math.log(2)-3) * 100.0 / 10));
+						}
 					}
 				}
 
