@@ -4,18 +4,14 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder.AudioSource;
 import android.os.SystemClock;
-import br.usp.ime.dspbenchmarking.DspThread.DspCallback;
 
 public class MicStream extends AudioStream {
 
 	private int bufferSize = 0;
 	private int sampleRate;
-	private int blockSize;
 	private int ix = 0;
 
-	
 	AudioRecord recorder = null;
-
 	
 	public MicStream(int bufSize, int sRate, int blSize) {
 		bufferSize = bufSize;
@@ -46,9 +42,7 @@ public class MicStream extends AudioStream {
 		return new short[bufferSize];
 	}
 
-	public void scheduleDspCallback(DspCallback callback,
-			long blockPeriodNanoseconds) {
-		dspCallback = callback;
+	public void scheduleDspCallback(long blockPeriodNanoseconds) {
 		recorder.setPositionNotificationPeriod(blockSize);
 		recorder.setRecordPositionUpdateListener(microphoneDspCallback);
 		recorder.startRecording();

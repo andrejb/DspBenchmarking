@@ -13,13 +13,16 @@ public class StressAlgorithm extends DspAlgorithm {
 
 	public StressAlgorithm(int sRate, int bSize, int fSize) {
 		super(sRate, bSize);
-		buf = new double[bSize];
+		setFilterSize(fSize);
+	}
+	
+	public void setFilterSize(int fSize) {
+		buf = new double[blockSize];
 		filterSize = fSize;
-		index = new int[bSize][fSize];
+		index = new int[blockSize][fSize];
 		coef = new double[fSize];
 		calcIndex();
-		calcCoef();
-	}
+		calcCoef();	}
 
 	private void calcIndex() {
 		for (int n = 0; n < blockSize; n++) {
@@ -39,6 +42,10 @@ public class StressAlgorithm extends DspAlgorithm {
 	
 	@Override
 	public void perform(double[] buffer) {
+		/*Log.i("perform", "blockSize="+blockSize);
+		Log.i("perform", "filterSize="+filterSize);
+		Log.i("perform", "indexX="+index.length);
+		Log.i("perform", "indexY="+index[0].length);*/
 		for (int n = 0; n < buffer.length; n++) {
 			buf[n] = wmean(buffer, n);
 		}

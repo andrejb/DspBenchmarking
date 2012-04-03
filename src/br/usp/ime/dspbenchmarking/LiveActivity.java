@@ -108,7 +108,6 @@ public class LiveActivity extends DspActivity {
 					}
 				dt = new DspThread(blockSize, dspAlgorithm, is);
 			}
-			dt.setup();
 			dt.setParams(parameter1);
 			dt.start();
 			// mProgressStatus = (int) readUsage() * 100;

@@ -12,14 +12,20 @@ public abstract class AudioStream {
 	
 	// DSP
 	DspCallback dspCallback;
+	protected int blockSize;
 
 	public abstract short[] createBuffer();
-	public abstract void scheduleDspCallback(DspCallback callback, long blockPeriodNanoseconds);
+	public abstract void scheduleDspCallback(long blockPeriodNanoseconds);
 	public abstract void readLoop(short[] buffer);
 	public abstract int blocks();
 	public abstract void stopRunning();
 	protected abstract int getMinBufferSize();
 	
+	
+	public void setBlockSize(int bSize) {
+		blockSize = bSize;
+	}
+
 	public long getCallbackPeriod() {
 		return callbackPeriod;
 	}
@@ -36,6 +42,13 @@ public abstract class AudioStream {
 		callbackPeriod = 0;
 		readTicks = 0;
 		sampleReadTime = 0;
+	}
+	
+	/**
+	 * 
+	 */
+	public void setDspCallback(DspCallback callback) {
+		dspCallback = callback;
 	}
 
 }

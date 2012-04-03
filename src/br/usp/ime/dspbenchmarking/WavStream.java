@@ -14,17 +14,16 @@ import java.util.concurrent.TimeUnit;
 
 import android.os.SystemClock;
 import android.util.Log;
-import br.usp.ime.dspbenchmarking.DspThread.DspCallback;
 
 
 public class WavStream extends AudioStream {
 
-    // Wav file info
+	// Wav file info
 	private int channels;
 	private int sampleRate;
-	private InputStream wavStream;
+	private InputStream inputStream;
 	private int dataSizeInBytes = 0;
-	
+
 	// Contants
 	//private static final String RIFF_HEADER = "RIFF";
 	//private static final String WAVE_HEADER = "WAVE";
@@ -32,15 +31,16 @@ public class WavStream extends AudioStream {
 	//private static final String DATA_HEADER = "data";
 	private static final int HEADER_SIZE = 44;
 	//private static final String CHARSET = "ASCII";
-	
+
 	// Buffers
 	ShortBuffer dataBuffer = null;
-	int blockSize;
-	
+
 	// Scheduling
 	ScheduledExecutorService scheduler;
-	ScheduledFuture<?> dspHandle;
-	
+	ScheduledFuture<?> dspTask;
+
+	// Signals if has already read from input
+	private boolean readFromInput = false;
 
 
 
@@ -55,15 +55,14 @@ public class WavStream extends AudioStream {
 		scheduler = Executors.newScheduledThreadPool(1);
 
 		//wavStream = new BufferedInputStream(new FileInputStream(filePath));
-		wavStream = new BufferedInputStream(is);
-		wavStream.mark(HEADER_SIZE);
+		inputStream = new BufferedInputStream(is);
+		inputStream.mark(HEADER_SIZE);
 
 		// Initialize for reading
 		readHeader();
-		wavStream.reset();
+		inputStream.reset();
 		initWavPcm();
 	}
-
 
 	/**
 	 * Reads the Wav Header.
@@ -73,17 +72,17 @@ public class WavStream extends AudioStream {
 
 		ByteBuffer buffer = ByteBuffer.allocate(HEADER_SIZE);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
-		wavStream.read(buffer.array(), buffer.arrayOffset(), buffer.capacity());
+		inputStream.read(buffer.array(), buffer.arrayOffset(), buffer.capacity());
 		buffer.rewind();
 		buffer.position(buffer.position() + 20);
-		
+
 		//int subChunkSize = buffer.getInt();
 		//Log.e("WavStream", "subChunkSize="+subChunkSize);
-		
+
 		int format = buffer.getShort();
 		checkFormat(format == 1, "Unsupported encoding: " + format); // 1 means
-																		// Linear
-																		// PCM
+		// Linear
+		// PCM
 		channels = buffer.getShort();
 		checkFormat(channels == 1, "Unsupported channels: "
 				+ channels);
@@ -104,11 +103,11 @@ public class WavStream extends AudioStream {
 		checkFormat(dataSizeInBytes > 0, "wrong datasize: " + dataSizeInBytes);
 		//Log.i("readHeader", "size="+dataSizeInBytes);
 
-		wavStream.reset();
-		wavStream.mark(HEADER_SIZE + dataSizeInBytes);
+		inputStream.reset();
+		inputStream.mark(HEADER_SIZE + dataSizeInBytes);
 		//return new WavInfo(new FormatSpec(rate, channels == 2), dataSize);
 	}
-	
+
 	/**
 	 * Prepares the Short buffer for reading the wav file.
 	 * @throws IOException
@@ -117,30 +116,30 @@ public class WavStream extends AudioStream {
 		int shortBlocks = (int) Math.ceil(((float) dataSizeInBytes / 2) / blockSize) + 2;
 		ByteBuffer buffer = ByteBuffer.allocate(shortBlocks * 2 * blockSize);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
-		wavStream.skip(HEADER_SIZE);
+		inputStream.skip(HEADER_SIZE);
 
-		wavStream.read(buffer.array(), 0, shortBlocks * 2 * blockSize);
+		inputStream.read(buffer.array(), 0, shortBlocks * 2 * blockSize);
 		buffer.rewind();
 
 		buffer.position(HEADER_SIZE);
 		dataBuffer = buffer.asShortBuffer();
 		dataBuffer.mark();
 	}
-	
+
 	/**
 	 * @return Short buffer with the data of the WAV file.
 	 */
 	public ShortBuffer getBuffer() {
 		return dataBuffer;
 	}
-	
+
 	/**
 	 * resets the internal buffer.
 	 */
-	public void reset() {
+	private void resetBuffer() {
 		dataBuffer.reset();
 	}
-	
+
 	/**
 	 * Queries the Short buffer for more data.
 	 * @param buffer
@@ -154,8 +153,8 @@ public class WavStream extends AudioStream {
 		//Log.i("getFromBuffer", "d===================");
 		dataBuffer.get(buffer, offset, size);
 	}
-	
-	
+
+
 	private void checkFormat(Boolean b, String msg) throws IOException {
 		if (!b)
 			throw new IOException(msg);
@@ -169,7 +168,7 @@ public class WavStream extends AudioStream {
 	public int getSampleRate() {
 		return sampleRate;
 	}
-	
+
 	/**
 	 * Returns the WAV size in Bytes.
 	 * @return
@@ -177,7 +176,7 @@ public class WavStream extends AudioStream {
 	public int getDataSizeInBytes() {
 		return dataSizeInBytes;
 	}
-	
+
 	/**
 	 * Returns the WAV size in Shorts.
 	 * @return
@@ -185,35 +184,37 @@ public class WavStream extends AudioStream {
 	public int getDataSizeInShorts() {
 		return dataSizeInBytes / 2;
 	}
-	
+
 	/**
 	 * 
 	 */
 	public short[] createBuffer() {
 		return new short[blocks() * blockSize];
 	}
-	
+
 	/**
 	 * 
 	 * @return
 	 */
 	public int blocks() {
-		if (wavStream != null)
+		if (inputStream != null)
 			return (int) Math.ceil((float) getDataSizeInShorts() / blockSize);
 		return 0;
 	}
-	
-	/**
-	 * 
-	 */
-	public void scheduleDspCallback(DspCallback callback, long blockPeriodNanoseconds) {
+
+
+	public void scheduleDspCallback(long blockPeriodNanoseconds) {
 		// schedule the DSP function.
-		dspCallback = callback;
-		dspHandle = scheduler.scheduleAtFixedRate(fileDspCallback,
-				blockPeriodNanoseconds, blockPeriodNanoseconds,
-				TimeUnit.NANOSECONDS);
+		if (dspTask == null) {
+			Log.w("scheduleDspCallback", "scheduling....");
+			//System.gc();
+			dspTask = scheduler.scheduleAtFixedRate(fileDspCallback,
+					blockPeriodNanoseconds, blockPeriodNanoseconds,
+					TimeUnit.NANOSECONDS);
+			Log.w("scheduleDspCallback", "scheduled....="+blockPeriodNanoseconds);
+		}
 	}
-	
+
 
 	/**
 	 * Listener for when using AUDIO_SOURCE_FILE
@@ -230,23 +231,27 @@ public class WavStream extends AudioStream {
 			dspCallback.run();
 		};
 	};
-	
+
 	/**
 	 * 
 	 */
 	public void readLoop(short[] buffer) {
 		long times1, times2;
-		reset();
-		for (int block = 0; block < blocks(); block++) {
-			readTicks++;
-			// read from WAV buffer.
-			times1 = SystemClock.uptimeMillis();
-			read(buffer, block * blockSize, blockSize);
-			times2 = SystemClock.uptimeMillis();
-			sampleReadTime += (times2 - times1);
-			// if (elapsedTime > (100000.0 * (float) blockSize /
-			// sampleRate))
-			// stopRunning();
+		resetBuffer();
+		isRunning = true;
+		if (!readFromInput) {
+			for (int block = 0; block < blocks(); block++) {
+				readTicks++;
+				// read from WAV buffer.
+				times1 = SystemClock.uptimeMillis();
+				read(buffer, block * blockSize, blockSize);
+				times2 = SystemClock.uptimeMillis();
+				sampleReadTime += (times2 - times1);
+				// if (elapsedTime > (100000.0 * (float) blockSize /
+				// sampleRate))
+				// stopRunning();
+			}
+			readFromInput = true;
 		}
 		// hang on until DSP toggles.
 		while (isRunning)
@@ -256,13 +261,14 @@ public class WavStream extends AudioStream {
 				Log.e("ERROR", "Thread was Interrupted");
 			}
 	}
-	
+
 	/**
 	 * 
 	 */
 	public void stopRunning() {
 		isRunning = false;
-		dspHandle.cancel(true);
+		dspTask.cancel(true);
+		dspTask = null;
 	}
 
 	/**

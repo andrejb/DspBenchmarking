@@ -16,6 +16,7 @@ public class DspThread extends Thread {
 
 	// Class variable defining state of the thread
 	private boolean isRunning = false;
+	private boolean isSuspended = false;
 
 	// Audio variables
 	static final int AUDIO_SOURCE_MIC = 0;
@@ -119,6 +120,7 @@ public class DspThread extends Thread {
 		.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 		blockSize = bSize;
 		setAlgorithm(algorithm);
+		setup();
 	}
 
 	/**
@@ -138,18 +140,24 @@ public class DspThread extends Thread {
 				// 	create the buffer.
 				audioStream = new MicStream(BUFFER_SIZE_IN_BLOCKS * blockSize,
 						sampleRate, blockSize);
+			// general audioStream options
 			buffer = audioStream.createBuffer();
+			setDspCallback();
 		}
 	}
-	
+
+	private void setDspCallback() {
+		if (audioSource == AUDIO_SOURCE_WAV)
+			audioStream.setDspCallback(new DspCallback(audioStream.blocks()));
+		else if (audioSource == AUDIO_SOURCE_MIC)
+			audioStream.setDspCallback(new DspCallback(BUFFER_SIZE_IN_BLOCKS));
+	}
+
 	private void scheduleDspCallback() {
 		if (audioSource == AUDIO_SOURCE_WAV)
-				audioStream.scheduleDspCallback(
-						new DspCallback(audioStream.blocks()),
-						(long) (1000000 * getBlockPeriod()));
+			audioStream.scheduleDspCallback((long) (1000000 * getBlockPeriod()));
 		else if (audioSource == AUDIO_SOURCE_MIC)
-			audioStream.scheduleDspCallback(new DspCallback(
-					BUFFER_SIZE_IN_BLOCKS), 0);
+			audioStream.scheduleDspCallback(0);
 	}
 
 	/**
@@ -211,22 +219,32 @@ public class DspThread extends Thread {
 
 			dspCallbackTime += SystemClock.uptimeMillis() - time0;
 			// Stop if reaches maximum of dsp cycles
+
 			if (callbackTicks == maxDspCycles)
-				stopRunning();
+				suspendDsp();
 		}
 	}
 
-	public void setup() {
+	private void setup() {
 		// turn on audio input and output.
 		setupAudioStream();
 		setupAudioTrack();
 	}
-	
+
 	public void setFilterSize(int fSize) {
 		filterSize = fSize;
+		StressAlgorithm alg = (StressAlgorithm) dspAlgorithm;
+		alg.setFilterSize(filterSize);
 	}
-	
-	public void reset() {
+
+	public void setBlockSize(int bSize) {
+		blockSize = bSize;
+		dspAlgorithm.setBlockSize(blockSize);
+		if (audioStream != null)
+			audioStream.setBlockSize(blockSize);
+	}
+
+	private void reset() {
 		sampleWriteTime = 0; // sum of time needed to write samples
 		dspPerformTime = 0; // sum of dsp perform routine times
 		dspCallbackTime = 0;  // sum of dsp callback times
@@ -235,20 +253,39 @@ public class DspThread extends Thread {
 		audioStream.reset();
 	}
 
-	
+
 	/**
-	 * This is called when the thread starts.
+	 * This is called when the thread starts. Runs until isRunning is false.
 	 */
 	@Override
 	public void run() {
 		isRunning = true;
 		try {
-			reset();
-			scheduleDspCallback();
-			// execute the read loop until DSP toggles.
-			startTime = SystemClock.uptimeMillis();
-			audioStream.readLoop(buffer);
-			// free audio resources.
+			while (true) {
+				if (isRunning)
+					// NO DSP for now...
+					if (isSuspended) {
+						// wait for resume
+						try {
+							Log.e("dormie", "ndo");
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							Log.e("ERROR", "Thread was Interrupted");
+						}
+					}
+					// read from audio source
+					else {
+						reset();
+						scheduleDspCallback();
+						track.play();
+						// execute the read loop until DSP toggles.
+						startTime = SystemClock.uptimeMillis();
+						audioStream.readLoop(buffer);
+					}
+				// thread is dead.
+				else
+					break;
+			}
 
 		} catch (Throwable x) {
 			Log.w("Audio", "Error reading voice audio", x);
@@ -271,7 +308,6 @@ public class DspThread extends Thread {
 					AudioFormat.ENCODING_PCM_16BIT, // channel encoding.
 					audioStream.getMinBufferSize() * 10, // buffer size.
 					AudioTrack.MODE_STREAM); // streaming or static buffer.
-			track.play();
 		}
 	}
 
@@ -303,8 +339,27 @@ public class DspThread extends Thread {
 		if (isRunning == false)
 			return false;
 		isRunning = false;
+		isSuspended = false;
 		if (audioStream != null)
 			audioStream.stopRunning();
+		return true;
+	}
+
+	public boolean suspendDsp() {
+		if (isRunning == false)
+			return false;
+		isSuspended = true;
+		if (audioStream != null)
+			audioStream.stopRunning();
+		if (track != null)
+			track.stop();
+		return true;
+	}
+
+	public boolean resumeDsp() {
+		if (isSuspended == false)
+			return false;
+		isSuspended = false;
 		return true;
 	}
 
@@ -324,17 +379,23 @@ public class DspThread extends Thread {
 
 	// getter
 	public double getSampleWriteMeanTime() {
-		return (double) sampleWriteTime / callbackTicks;
+		if (callbackTicks != 0)
+			return (double) sampleWriteTime / callbackTicks;
+		return 0;
 	}
 
 	// getter
 	public double getDspPerformMeanTime() {
-		return (double) dspPerformTime / callbackTicks;
+		if (callbackTicks != 0)
+			return (double) dspPerformTime / callbackTicks;
+		return 0;
 	}
 
 	// getter
 	public double getDspCallbackMeanTime() {
-		return (double) dspCallbackTime / callbackTicks;
+		if (callbackTicks != 0)
+			return (double) dspCallbackTime / callbackTicks;
+		return 0;
 	}
 
 	// getter
@@ -379,6 +440,10 @@ public class DspThread extends Thread {
 
 	public boolean isRunning() {
 		return isRunning;
+	}
+
+	public boolean isSuspended() {
+		return isSuspended;
 	}
 
 }

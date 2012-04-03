@@ -224,7 +224,6 @@ public class TestActivity extends DspActivity {
 		Log.i("launchTest", "blockSize="+blockSize);
 		Log.i("launchTest", "algorithm="+algorithm);
 		dt = new DspThread(blockSize, algorithm, is, MAX_DSP_CYCLES);
-		dt.setup();
 		dt.setParams(0.5);
 		dt.start();
 	}
