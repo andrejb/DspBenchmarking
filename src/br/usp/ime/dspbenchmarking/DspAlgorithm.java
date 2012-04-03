@@ -2,7 +2,7 @@ package br.usp.ime.dspbenchmarking;
 
 public abstract class DspAlgorithm {
 
-	private int blockSize;
+	protected int blockSize;
 	private int sampleRate;
 	
 	private double parameter1 = 1;

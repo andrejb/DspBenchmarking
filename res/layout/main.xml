@@ -17,6 +17,14 @@
         android:onClick="startTestActivity"
         android:text="@string/dsp_benchmarking" />
 
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+                android:onClick="startStressActivity"
+        
+        android:text="@string/stress_test" />
+
     <ProgressBar
         android:id="@+id/pb1"
         style="?android:attr/progressBarStyleHorizontal"

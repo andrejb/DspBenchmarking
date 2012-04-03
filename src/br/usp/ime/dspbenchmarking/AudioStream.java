@@ -31,5 +31,11 @@ public abstract class AudioStream {
 	public long getSampleReadTime() {
 		return sampleReadTime;
 	}
+	
+	public void reset() {
+		callbackPeriod = 0;
+		readTicks = 0;
+		sampleReadTime = 0;
+	}
 
 }

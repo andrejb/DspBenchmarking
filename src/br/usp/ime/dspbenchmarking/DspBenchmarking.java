@@ -31,5 +31,9 @@ public class DspBenchmarking extends Activity {
     	Intent test_intent = new Intent(DspBenchmarking.this, TestActivity.class);
     	DspBenchmarking.this.startActivity(test_intent);
     }
-    
+
+    public void startStressActivity(View v) {
+    	Intent stress_intent = new Intent(DspBenchmarking.this, StressActivity.class);
+    	DspBenchmarking.this.startActivity(stress_intent);
+    }
 }

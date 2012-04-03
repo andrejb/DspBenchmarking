@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import android.content.res.Resources.NotFoundException;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -107,6 +108,7 @@ public class LiveActivity extends DspActivity {
 					}
 				dt = new DspThread(blockSize, dspAlgorithm, is);
 			}
+			dt.setup();
 			dt.setParams(parameter1);
 			dt.start();
 			// mProgressStatus = (int) readUsage() * 100;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="dsp">DSP</string>
+    <string name="dsp">Live DSP</string>
     <string name="app_name">DSP Benchmarking</string>
     <string name="quit">Sair</string>
     <string name="toggle_dsp">Compute audio</string>
@@ -27,6 +27,7 @@
         <item>Reverb</item>
         <item>FFT</item>
         <item>Phase Vocoder</item>
+        <item >Stress</item>
     </string-array>
     
   	<string-array name="block_size_array">
@@ -57,9 +58,10 @@
         <string name="elapsed_time">"Elapsed time:  "</string>
         <string name="param_1">"Parameter 1:  "</string>
         <string name="audio_source">Audio source:</string>
-        <string name="dsp_benchmarking">DSP Benchmarking</string>
+        <string name="dsp_benchmarking">Test Algorithms</string>
         <string name="start">start</string>
         <string name="loopback">"Loopback:  "</string>
         <string name="dash">-</string>
+        <string name="stress_test">Stress Test</string>
     
 </resources>

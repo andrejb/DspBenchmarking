@@ -50,7 +50,7 @@ public class TestActivity extends DspActivity {
 	InputStream is;
 
 	// Test limits
-	static int startBlockSize = (int) Math.pow(2,6);
+	static int startBlockSize = (int) Math.pow(2,4);
 	static int endBlockSize = (int) Math.pow(2,13);
 	static int startAlgorithm = 0;
 	static int endAlgorithm = 2;
@@ -145,6 +145,8 @@ public class TestActivity extends DspActivity {
 			algorithmName.setText("Reverb:  ");
 		else if (algorithm == 2)
 			algorithmName.setText("FFT:  ");
+		else if (algorithm == 4)
+			algorithmName.setText("Stress:  ");
 		blockSizeView.setText(String.valueOf(bsize));
 	}
 
@@ -222,6 +224,7 @@ public class TestActivity extends DspActivity {
 		Log.i("launchTest", "blockSize="+blockSize);
 		Log.i("launchTest", "algorithm="+algorithm);
 		dt = new DspThread(blockSize, algorithm, is, MAX_DSP_CYCLES);
+		dt.setup();
 		dt.setParams(0.5);
 		dt.start();
 	}
@@ -330,7 +333,7 @@ public class TestActivity extends DspActivity {
 			// Get input stream
 			try {
 				// Iterate through algorithms
-				for (int i=0; i<3; i++) {
+				//for (int i=0; i<3; i++) {
 					for (int alg = startAlgorithm; alg <= endAlgorithm; alg++) {
 						Log.i("DSP TEST", "init algorithm " + alg);
 						// Iterate through power of 2 blocks
@@ -386,7 +389,7 @@ public class TestActivity extends DspActivity {
 							.setProgress((int) ((Math.log(bSize) / Math.log(2)-3) * 100.0 / 10));
 						}
 					}
-				}
+				//}
 
 			} catch (Exception e) {
 				e.printStackTrace();

@@ -32,7 +32,7 @@ public class DspThread extends Thread {
 	private long dspPerformTime = 0; // sum of dsp perform routine times
 	private long dspCallbackTime = 0;  // sum of dsp callback times
 	private final int sampleRate = 44100; // the system sample rate
-	private int blockSize = 64; // the block period in samples
+	private int blockSize; // the block period in samples
 	private long callbackTicks = 0; // how many times DSP callback ran
 	private long elapsedTime = 0; // total DSP elapsed time
 	private long startTime;
@@ -44,6 +44,9 @@ public class DspThread extends Thread {
 
 	// Stream
 	AudioStream audioStream = null;
+
+	//Stressing
+	int filterSize;
 
 	/**
 	 * Crates a DSP thread with input from MIC
@@ -59,7 +62,7 @@ public class DspThread extends Thread {
 		maxDspCycles = cycles;
 		Init(bSize, algorithm, null, AUDIO_SOURCE_MIC);
 	}
-	
+
 	/**
 	 * Creates a DSP Thread with file input
 	 * 
@@ -86,6 +89,20 @@ public class DspThread extends Thread {
 	}
 
 	/**
+	 * Creates a DSP Thread that runs for a maximum amount of cycles for stress testing
+	 * 
+	 * @param bSize
+	 * @param algorithm
+	 * @param stream
+	 * @param cycles
+	 */
+	DspThread(int bSize, int algorithm, InputStream stream, int cycles, int fSize) {
+		maxDspCycles = cycles;
+		filterSize = fSize;
+		Init(bSize, algorithm, stream, AUDIO_SOURCE_WAV);
+	}
+
+	/**
 	 * Initializes instance variables.
 	 * 
 	 * @param bSize
@@ -99,7 +116,7 @@ public class DspThread extends Thread {
 		inputStream = stream;
 		audioSource = source;
 		android.os.Process
-				.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+		.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 		blockSize = bSize;
 		setAlgorithm(algorithm);
 	}
@@ -107,30 +124,32 @@ public class DspThread extends Thread {
 	/**
 	 * Initiates microphone audio stream.
 	 */
-	private void startRecorder() {
+	private void setupAudioStream() {
+		if (audioStream == null) {
+			if (audioSource == AUDIO_SOURCE_WAV)
+				try {
+					// 	create the stream and the buffer.
+					audioStream = new WavStream(inputStream, blockSize);
+				} catch (IOException e) {
+					Log.e("startRecorder", "IOException: " + e);
+					e.printStackTrace();
+				}
+			else if (audioSource == AUDIO_SOURCE_MIC)
+				// 	create the buffer.
+				audioStream = new MicStream(BUFFER_SIZE_IN_BLOCKS * blockSize,
+						sampleRate, blockSize);
+			buffer = audioStream.createBuffer();
+		}
+	}
+	
+	private void scheduleDspCallback() {
 		if (audioSource == AUDIO_SOURCE_WAV)
-			try {
-				// create the stream and the buffer.
-				audioStream = new WavStream(inputStream, blockSize);
-				buffer = audioStream.createBuffer();
 				audioStream.scheduleDspCallback(
 						new DspCallback(audioStream.blocks()),
 						(long) (1000000 * getBlockPeriod()));
-
-			} catch (IOException e) {
-				Log.e("startRecorder", "IOException: " + e);
-				e.printStackTrace();
-			}
-		else if (audioSource == AUDIO_SOURCE_MIC) {
-			// create the buffer.
-			audioStream = new MicStream(BUFFER_SIZE_IN_BLOCKS * blockSize,
-					sampleRate, blockSize);
-			buffer = audioStream.createBuffer();
+		else if (audioSource == AUDIO_SOURCE_MIC)
 			audioStream.scheduleDspCallback(new DspCallback(
 					BUFFER_SIZE_IN_BLOCKS), 0);
-			// buffer = new short[BUFFER_SIZE_IN_BLOCKS * blockSize];
-
-		}
 	}
 
 	/**
@@ -148,6 +167,8 @@ public class DspThread extends Thread {
 			dspAlgorithm = new FftAlgorithm(sampleRate, blockSize);
 		else if (algorithm == 3)
 			dspAlgorithm = new PhaseVocoder(sampleRate, blockSize);
+		else if (algorithm == 4)
+			dspAlgorithm = new StressAlgorithm(sampleRate, blockSize, filterSize);
 		setParams(parameter1);
 	}
 
@@ -187,7 +208,7 @@ public class DspThread extends Thread {
 			}
 			sampleWriteTime += (SystemClock.uptimeMillis() - time1);
 			elapsedTime = SystemClock.uptimeMillis() - startTime;
-			
+
 			dspCallbackTime += SystemClock.uptimeMillis() - time0;
 			// Stop if reaches maximum of dsp cycles
 			if (callbackTicks == maxDspCycles)
@@ -195,6 +216,26 @@ public class DspThread extends Thread {
 		}
 	}
 
+	public void setup() {
+		// turn on audio input and output.
+		setupAudioStream();
+		setupAudioTrack();
+	}
+	
+	public void setFilterSize(int fSize) {
+		filterSize = fSize;
+	}
+	
+	public void reset() {
+		sampleWriteTime = 0; // sum of time needed to write samples
+		dspPerformTime = 0; // sum of dsp perform routine times
+		dspCallbackTime = 0;  // sum of dsp callback times
+		callbackTicks = 0; // how many times DSP callback ran
+		elapsedTime = 0; // total DSP elapsed time
+		audioStream.reset();
+	}
+
+	
 	/**
 	 * This is called when the thread starts.
 	 */
@@ -202,9 +243,8 @@ public class DspThread extends Thread {
 	public void run() {
 		isRunning = true;
 		try {
-			// turn on audio input and output.
-			startRecorder();
-			startAudioTrack();
+			reset();
+			scheduleDspCallback();
 			// execute the read loop until DSP toggles.
 			startTime = SystemClock.uptimeMillis();
 			audioStream.readLoop(buffer);
@@ -220,17 +260,19 @@ public class DspThread extends Thread {
 	/**
 	 * Starts the player.
 	 */
-	private void startAudioTrack() {
+	private void setupAudioTrack() {
 		//Log.e("startAudioTrack", "audioStream="+audioStream);
-		track = new AudioTrack(AudioManager.STREAM_MUSIC, // stream type (could
-															// be
-															// STREAM_VOICECALL).
-				sampleRate, // sample rate.
-				AudioFormat.CHANNEL_OUT_MONO, // channel configuration.
-				AudioFormat.ENCODING_PCM_16BIT, // channel encoding.
-				audioStream.getMinBufferSize() * 10, // buffer size.
-				AudioTrack.MODE_STREAM); // streaming or static buffer.
-		track.play();
+		if (track == null) {
+			track = new AudioTrack(AudioManager.STREAM_MUSIC, // stream type (could
+					// be
+					// STREAM_VOICECALL).
+					sampleRate, // sample rate.
+					AudioFormat.CHANNEL_OUT_MONO, // channel configuration.
+					AudioFormat.ENCODING_PCM_16BIT, // channel encoding.
+					audioStream.getMinBufferSize() * 10, // buffer size.
+					AudioTrack.MODE_STREAM); // streaming or static buffer.
+			track.play();
+		}
 	}
 
 	/**
@@ -289,7 +331,7 @@ public class DspThread extends Thread {
 	public double getDspPerformMeanTime() {
 		return (double) dspPerformTime / callbackTicks;
 	}
-	
+
 	// getter
 	public double getDspCallbackMeanTime() {
 		return (double) dspCallbackTime / callbackTicks;
@@ -334,8 +376,9 @@ public class DspThread extends Thread {
 	public double getElapsedTime() {
 		return (double) elapsedTime;
 	}
-	
+
 	public boolean isRunning() {
 		return isRunning;
 	}
+
 }
