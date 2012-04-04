@@ -27,6 +27,7 @@ public class DspThread extends Thread {
 	short[] buffer = null;
 	final int BUFFER_SIZE_IN_BLOCKS = 256;
 	int jx = 0;
+	double[] performBuffer = null;
 
 	// Time tracking variables
 	private long sampleWriteTime = 0; // sum of time needed to write samples
@@ -141,7 +142,7 @@ public class DspThread extends Thread {
 				audioStream = new MicStream(BUFFER_SIZE_IN_BLOCKS * blockSize,
 						sampleRate, blockSize);
 			// general audioStream options
-			buffer = audioStream.createBuffer();
+			createBuffers();
 			setDspCallback();
 		}
 	}
@@ -194,34 +195,55 @@ public class DspThread extends Thread {
 
 		public void run() {
 			// private void dspCallback(int wrap) {
+			//Log.e("DspThread.run()", "1");
 			callbackTicks++;
+			//Log.e("DspThread.run()", "2");
 			long time0 = SystemClock.uptimeMillis();
+			//Log.e("DspThread.run()", "3");
 			// Convert from PCM shorts to doubles
-			double[] performBuffer = new double[blockSize];
+			//Log.e("DspThread.run()", "blockSize="+blockSize);
+			//Log.e("DspThread.run()", "jx="+jx);
+			//Log.e("DspThread.run()", "buffer.length="+buffer.length);
+			//Log.e("DspThread.run()", "wrap="+wrap);
+			performBuffer = new double[blockSize];
 			for (int i = 0; i < blockSize; i++)
-				performBuffer[i] = (double) buffer[(jx % wrap) * blockSize + i] / 65536;
+				performBuffer[i] = (double) buffer[(jx * blockSize + i) % buffer.length] / 65536;
+			//Log.e("DspThread.run()", "4");
 			long time1;
+			//Log.e("DspThread.run()", "5");
+			//===============================================================
+			// PERFORM
+			//===============================================================
 			// calls DSP perform for selected algorithm
 			time1 = SystemClock.uptimeMillis();
-			dspAlgorithm.perform(performBuffer);
+			//Log.e("vou performar", "vou");
+			dspAlgorithm.perform(performBuffer); // <------------------------
+			//Log.e("vou performar", "fui");
 			dspPerformTime += (SystemClock.uptimeMillis() - time1);
 			// Convert from doubles to PCM shorts
 			for (int i = 0; i < blockSize; i++)
-				buffer[(jx % wrap) * blockSize + i] = (short) (performBuffer[i] * 65536);
+				buffer[(jx * blockSize + i) % buffer.length] = (short) (performBuffer[i] * 65536);
+			//Log.e("vou performar", "1");
 			// Write to the system buffer.
 			time1 = SystemClock.uptimeMillis();
 			if (track != null) {
-				track.write(buffer, (jx++ % wrap) * blockSize, blockSize);
+				track.write(buffer, (jx++ * blockSize) % buffer.length, blockSize);
 				// track.write(outputBuffer, 0, blockSize);
 			}
+			//Log.e("vou performar", "2");
 			sampleWriteTime += (SystemClock.uptimeMillis() - time1);
 			elapsedTime = SystemClock.uptimeMillis() - startTime;
 
 			dspCallbackTime += SystemClock.uptimeMillis() - time0;
 			// Stop if reaches maximum of dsp cycles
-
-			if (callbackTicks == maxDspCycles)
+			//Log.e("aqui", "terminando....");
+			//Log.e("vou performar", "callbackTicks="+callbackTicks);
+			//Log.e("vou performar", "maxDspCycles="+maxDspCycles);
+			if (callbackTicks == maxDspCycles) {
+				//Log.e("vou performar", "suspendi");
 				suspendDsp();
+			}
+			//Log.e("vou performar", "passei");
 		}
 	}
 
@@ -267,7 +289,7 @@ public class DspThread extends Thread {
 					if (isSuspended) {
 						// wait for resume
 						try {
-							Log.e("dormie", "ndo");
+							//Log.w("DSPThread", "sleeping...");
 							Thread.sleep(1000);
 						} catch (InterruptedException e) {
 							Log.e("ERROR", "Thread was Interrupted");
@@ -275,12 +297,19 @@ public class DspThread extends Thread {
 					}
 					// read from audio source
 					else {
+						//Log.e("run", "1");
 						reset();
+						//Log.e("run", "2");
+						createPerformBuffer();
 						scheduleDspCallback();
+						//Log.e("run", "3");
 						track.play();
+						//Log.e("run", "4");
 						// execute the read loop until DSP toggles.
 						startTime = SystemClock.uptimeMillis();
+						//Log.e("run", "5");
 						audioStream.readLoop(buffer);
+						//Log.e("run", "6");
 					}
 				// thread is dead.
 				else
@@ -292,6 +321,18 @@ public class DspThread extends Thread {
 		} finally {
 		}
 
+	}
+	
+	private void createBuffers() {
+		if (buffer == null) {
+			buffer = audioStream.createBuffer();
+			createPerformBuffer();
+		}
+	}
+	
+	private void createPerformBuffer() {
+		 if (performBuffer == null || performBuffer.length != blockSize)
+			 performBuffer = new double[buffer.length]; 
 	}
 
 	/**
@@ -411,8 +452,9 @@ public class DspThread extends Thread {
 	// getter
 	public double getCallbackPeriodMeanTime() {
 		if (audioStream != null)
-			return (double) audioStream.getCallbackPeriod()
-					/ (callbackTicks - 1);
+			if (callbackTicks != 1)
+				return (double) audioStream.getCallbackPeriod()
+						/ (callbackTicks - 1);
 		return 0;
 	}
 

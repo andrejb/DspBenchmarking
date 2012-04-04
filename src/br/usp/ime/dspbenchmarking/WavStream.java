@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -189,7 +190,11 @@ public class WavStream extends AudioStream {
 	 * 
 	 */
 	public short[] createBuffer() {
-		return new short[blocks() * blockSize];
+		return new short[getBufferSize()];
+	}
+	
+	public int getBufferSize() {
+		return blocks() * blockSize;
 	}
 
 	/**
@@ -207,10 +212,27 @@ public class WavStream extends AudioStream {
 		// schedule the DSP function.
 		if (dspTask == null) {
 			Log.w("scheduleDspCallback", "scheduling....");
-			//System.gc();
+			System.gc();
+			try {
+				Log.w("WavStream", "sleeping...");
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				Log.e("ERROR", "Thread was Interrupted");
+			}
+			try {
 			dspTask = scheduler.scheduleAtFixedRate(fileDspCallback,
 					blockPeriodNanoseconds, blockPeriodNanoseconds,
 					TimeUnit.NANOSECONDS);
+			} catch (RejectedExecutionException e) {
+				Log.e("WavStream.scheduleDspCallback()", "Rejected Execution = "+e);
+				e.printStackTrace();
+			} catch (NullPointerException e) {
+				Log.e("WavStream.scheduleDspCallback()", "Null Pointer = "+e);
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				Log.e("WavStream.scheduleDspCallback()", "Illegal Argument = "+e);
+				e.printStackTrace();
+			}
 			Log.w("scheduleDspCallback", "scheduled....="+blockPeriodNanoseconds);
 		}
 	}
@@ -267,8 +289,10 @@ public class WavStream extends AudioStream {
 	 */
 	public void stopRunning() {
 		isRunning = false;
-		dspTask.cancel(true);
-		dspTask = null;
+		if (dspTask != null) {
+			dspTask.cancel(false);
+			dspTask = null;
+		}
 	}
 
 	/**
