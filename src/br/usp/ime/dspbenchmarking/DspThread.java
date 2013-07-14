@@ -244,7 +244,7 @@ public class DspThread extends Thread {
 			//Log.e("vou performar", "callbackTicks="+callbackTicks);
 			//Log.e("vou performar", "maxDspCycles="+maxDspCycles);
 			if (callbackTicks == maxDspCycles) {
-				//Log.e("vou performar", "suspendi");
+				Log.e("DSPThread", "suspended");
 				suspendDsp();
 			}
 			//Log.e("vou performar", "passei");
