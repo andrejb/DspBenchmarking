@@ -3,6 +3,8 @@ package br.usp.ime.dspbenchmarking;
 import java.io.IOException;
 import java.io.InputStream;
 
+import br.usp.ime.dspbenchmarking.fftw.FFTWAlgorithm;
+
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -178,6 +180,8 @@ public class DspThread extends Thread {
 			dspAlgorithm = new PhaseVocoder(sampleRate, blockSize);
 		else if (algorithm == 4)
 			dspAlgorithm = new StressAlgorithm(sampleRate, blockSize, filterSize);
+		else if (algorithm == 5)
+			dspAlgorithm = new FFTWAlgorithm(sampleRate, blockSize);		
 		setParams(parameter1);
 	}
 

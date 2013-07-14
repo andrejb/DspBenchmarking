@@ -52,7 +52,7 @@ public class TestActivity extends DspActivity {
 	// Test limits
 	static int startBlockSize = (int) Math.pow(2,4);
 	static int endBlockSize = (int) Math.pow(2,13);
-	static int startAlgorithm = 0;
+	static int startAlgorithm = 5;
 	static int endAlgorithm = 2;
 	int blockSize = startBlockSize;
 	int algorithm = startAlgorithm;
@@ -147,6 +147,8 @@ public class TestActivity extends DspActivity {
 			algorithmName.setText("FFT:  ");
 		else if (algorithm == 4)
 			algorithmName.setText("Stress:  ");
+		else if (algorithm == 5)
+			algorithmName.setText("FFTW monothread:  ");		
 		blockSizeView.setText(String.valueOf(bsize));
 	}
 
