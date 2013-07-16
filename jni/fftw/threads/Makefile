@@ -100,8 +100,8 @@ am__uninstall_files_from_dir = { \
   }
 am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
-libfftw3_omp_la_DEPENDENCIES =  \
-	../libfftw3.la
+#libfftw3_omp_la_DEPENDENCIES =  \
+#	../libfftw3.la
 am_libfftw3_omp_la_OBJECTS =  \
 	libfftw3_omp_la-api.lo \
 	libfftw3_omp_la-conf.lo \
@@ -121,10 +121,10 @@ libfftw3_omp_la_LINK = $(LIBTOOL) --tag=CC \
 ##am_libfftw3_omp_la_rpath =  \
 ##	-rpath \
 ##	$(libdir)
-#am_libfftw3_omp_la_rpath =  \
-#	-rpath $(libdir)
-libfftw3_threads_la_DEPENDENCIES =  \
-	../libfftw3.la
+##am_libfftw3_omp_la_rpath =  \
+##	-rpath $(libdir)
+#libfftw3_threads_la_DEPENDENCIES =  \
+#	../libfftw3.la
 am_libfftw3_threads_la_OBJECTS =  \
 	libfftw3_threads_la-api.lo \
 	libfftw3_threads_la-conf.lo \
@@ -143,7 +143,7 @@ libfftw3_threads_la_LINK = $(LIBTOOL) --tag=CC \
 	$(libfftw3_threads_la_LDFLAGS) $(LDFLAGS) -o $@
 #am_libfftw3_threads_la_rpath =  \
 #	-rpath $(libdir)
-##am_libfftw3_threads_la_rpath =
+am_libfftw3_threads_la_rpath =
 DEFAULT_INCLUDES = -I. -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -245,7 +245,7 @@ PATH_SEPARATOR = :
 POW_LIB = 
 PRECISION = d
 PREC_SUFFIX = 
-PTHREAD_CC = 
+PTHREAD_CC = /home/max/Src/android/adk/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86_64/bin/arm-linux-androideabi-gcc --sysroot=/home/max/Src/android/adk/android-ndk-r8e/platforms/android-8/arch-arm -std=gnu99
 PTHREAD_CFLAGS = 
 PTHREAD_LIBS = 
 RANLIB = /home/max/Src/android/adk/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86_64/bin/arm-linux-androideabi-ranlib
@@ -256,7 +256,7 @@ SHELL = /bin/sh
 SSE2_CFLAGS = 
 STACK_ALIGN_CFLAGS = 
 STRIP = /home/max/Src/android/adk/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip
-THREADLIBS = 
+THREADLIBS =  
 VERSION = 3.3.3
 abs_builddir = /home/max/Src/dspbenchmark/DspBenchmarking/jni/fftw/threads
 abs_srcdir = /home/max/Src/dspbenchmark/DspBenchmarking/jni/fftw/threads
@@ -318,9 +318,9 @@ AM_CPPFLAGS = -I$(top_srcdir)/kernel -I$(top_srcdir)/dft	\
 AM_CFLAGS = $(STACK_ALIGN_CFLAGS)
 FFTWOMPLIB = 
 #FFTWOMPLIB = libfftw3_omp.la
-##noinst_LTLIBRARIES = libfftw3_threads.la
+noinst_LTLIBRARIES = libfftw3_threads.la
 #lib_LTLIBRARIES = libfftw3_threads.la $(FFTWOMPLIB)
-lib_LTLIBRARIES = $(FFTWOMPLIB)
+#lib_LTLIBRARIES = $(FFTWOMPLIB)
 
 # pkgincludedir = $(includedir)/fftw3
 # pkginclude_HEADERS = threads.h
@@ -330,14 +330,14 @@ vrank-geq1-rdft2.c f77api.c f77funcs.h
 
 libfftw3_threads_la_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 libfftw3_threads_la_LDFLAGS = -version-info 6:2:3
-libfftw3_threads_la_LIBADD = ../libfftw3.la
+#libfftw3_threads_la_LIBADD = ../libfftw3.la
 libfftw3_omp_la_SOURCES = api.c conf.c openmp.c	\
 threads.h dft-vrank-geq1.c ct.c rdft-vrank-geq1.c hc2hc.c	\
 vrank-geq1-rdft2.c f77api.c f77funcs.h
 
 libfftw3_omp_la_CFLAGS = $(AM_CFLAGS) $(OPENMP_CFLAGS)
 libfftw3_omp_la_LDFLAGS = -version-info 6:2:3
-libfftw3_omp_la_LIBADD = ../libfftw3.la
+#libfftw3_omp_la_LIBADD = ../libfftw3.la
 all: all-am
 
 .SUFFIXES:

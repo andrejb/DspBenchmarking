@@ -21,6 +21,8 @@ export STRIP="$PREBUILT/bin/arm-linux-androideabi-strip"
     --prefix=$PREFIX \
     --disable-shared \
     --enable-static \
+    --enable-threads \
+    --with-combined-threads \
     --host=arm-eabi
     
 make -j16

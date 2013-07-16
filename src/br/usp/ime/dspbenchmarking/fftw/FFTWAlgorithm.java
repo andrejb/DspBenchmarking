@@ -11,7 +11,7 @@ public class FFTWAlgorithm extends br.usp.ime.dspbenchmarking.DspAlgorithm {
 	@Override
 	public void perform(double[] buffer) {
 		// TODO Auto-generated method stub
-		
+		FFTW.setMonothread();
 		FFTW.execute(buffer);
 	}
 

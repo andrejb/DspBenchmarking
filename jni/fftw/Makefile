@@ -272,7 +272,7 @@ PATH_SEPARATOR = :
 POW_LIB = 
 PRECISION = d
 PREC_SUFFIX = 
-PTHREAD_CC = 
+PTHREAD_CC = /home/max/Src/android/adk/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86_64/bin/arm-linux-androideabi-gcc --sysroot=/home/max/Src/android/adk/android-ndk-r8e/platforms/android-8/arch-arm -std=gnu99
 PTHREAD_CFLAGS = 
 PTHREAD_LIBS = 
 RANLIB = /home/max/Src/android/adk/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86_64/bin/arm-linux-androideabi-ranlib
@@ -283,7 +283,7 @@ SHELL = /bin/sh
 SSE2_CFLAGS = 
 STACK_ALIGN_CFLAGS = 
 STRIP = /home/max/Src/android/adk/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip
-THREADLIBS = 
+THREADLIBS =  
 VERSION = 3.3.3
 abs_builddir = /home/max/Src/dspbenchmark/DspBenchmarking/jni/fftw
 abs_srcdir = /home/max/Src/dspbenchmark/DspBenchmarking/jni/fftw
@@ -349,7 +349,7 @@ GENFFT =
 # recompile genfft if maintainer mode is true
 #GENFFT = genfft
 ACLOCAL_AMFLAGS = -I m4
-CHICKEN_EGG = . threads
+#CHICKEN_EGG = . threads
 
 # when using combined thread libraries (necessary on Windows), we want
 # to build threads/ first, because libfftw3_threads is added to
@@ -362,7 +362,7 @@ CHICKEN_EGG = . threads
 # This is the inescapable result of combining three bad ideas
 # (threads, Windows, and shared libraries).
 #
-#CHICKEN_EGG = threads .
+CHICKEN_EGG = threads .
 SUBDIRS = support $(GENFFT) kernel simd-support dft rdft reodft api	\
 libbench2 $(CHICKEN_EGG) tests mpi doc tools m4
 
@@ -383,7 +383,7 @@ SIMD_LIBS = \
 #NEON_LIBS = dft/simd/neon/libdft_neon_codelets.la	\
 #rdft/simd/neon/librdft_neon_codelets.la
 
-##COMBINED_THREADLIBS = threads/libfftw3_threads.la
+COMBINED_THREADLIBS = threads/libfftw3_threads.la
 libfftw3_la_SOURCES = 
 libfftw3_la_LIBADD = \
 	kernel/libkernel.la				\

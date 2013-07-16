@@ -29,6 +29,7 @@
         <item>Phase Vocoder</item>
         <item >Stress</item>
         <item >FFTW - monothread</item>
+        <item >FFTW - multithread</item>
     </string-array>
     
   	<string-array name="block_size_array">

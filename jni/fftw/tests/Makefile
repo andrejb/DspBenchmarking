@@ -182,7 +182,7 @@ PATH_SEPARATOR = :
 POW_LIB = 
 PRECISION = d
 PREC_SUFFIX = 
-PTHREAD_CC = 
+PTHREAD_CC = /home/max/Src/android/adk/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86_64/bin/arm-linux-androideabi-gcc --sysroot=/home/max/Src/android/adk/android-ndk-r8e/platforms/android-8/arch-arm -std=gnu99
 PTHREAD_CFLAGS = 
 PTHREAD_LIBS = 
 RANLIB = /home/max/Src/android/adk/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86_64/bin/arm-linux-androideabi-ranlib
@@ -193,7 +193,7 @@ SHELL = /bin/sh
 SSE2_CFLAGS = 
 STACK_ALIGN_CFLAGS = 
 STRIP = /home/max/Src/android/adk/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip
-THREADLIBS = 
+THREADLIBS =  
 VERSION = 3.3.3
 abs_builddir = /home/max/Src/dspbenchmark/DspBenchmarking/jni/fftw/tests
 abs_srcdir = /home/max/Src/dspbenchmark/DspBenchmarking/jni/fftw/tests
@@ -254,10 +254,10 @@ AM_CPPFLAGS = -I$(top_srcdir)/kernel -I$(top_srcdir)/libbench2	\
 -I$(top_srcdir)/threads -I$(top_srcdir)/api 
 
 EXTRA_DIST = check.pl README
-#bench_CFLAGS = $(OPENMP_CFLAGS)
-#bench_CFLAGS = $(PTHREAD_CFLAGS)
+##bench_CFLAGS = $(OPENMP_CFLAGS)
+bench_CFLAGS = $(PTHREAD_CFLAGS)
 #LIBFFTWTHREADS = $(top_builddir)/threads/libfftw3_threads.la
-#LIBFFTWTHREADS = $(top_builddir)/threads/libfftw3_omp.la
+##LIBFFTWTHREADS = $(top_builddir)/threads/libfftw3_omp.la
 bench_SOURCES = bench.c hook.c fftw-bench.c fftw-bench.h
 bench_LDADD = $(LIBFFTWTHREADS)				\
 $(top_builddir)/libfftw3.la		\
@@ -599,22 +599,22 @@ check-local: bench$(EXEEXT)
 	@echo "--------------------------------------------------------------"
 	@echo "         FFTW transforms passed basic tests!"
 	@echo "--------------------------------------------------------------"
-#	perl -w $(srcdir)/check.pl $(CHECK_PL_OPTS) -r -c=30 -v --nthreads=2 `pwd`/bench
-#	@echo "--------------------------------------------------------------"
-#	@echo "         FFTW threaded transforms passed basic tests!"
-#	@echo "--------------------------------------------------------------"
+	perl -w $(srcdir)/check.pl $(CHECK_PL_OPTS) -r -c=30 -v --nthreads=2 `pwd`/bench
+	@echo "--------------------------------------------------------------"
+	@echo "         FFTW threaded transforms passed basic tests!"
+	@echo "--------------------------------------------------------------"
 
 bigcheck: bench$(EXEEXT)
 	perl -w $(srcdir)/check.pl $(CHECK_PL_OPTS) -a -v `pwd`/bench
 	@echo "--------------------------------------------------------------"
 	@echo "         FFTW transforms passed big tests!"
 	@echo "--------------------------------------------------------------"
-#	perl -w $(srcdir)/check.pl $(CHECK_PL_OPTS) -a -v --nthreads=2 `pwd`/bench
-#	perl -w $(srcdir)/check.pl $(CHECK_PL_OPTS) -a -v --nthreads=3 `pwd`/bench
-#	perl -w $(srcdir)/check.pl $(CHECK_PL_OPTS) -a -v --nthreads=10 `pwd`/bench
-#	@echo "--------------------------------------------------------------"
-#	@echo "         FFTW threaded transforms passed big tests!"
-#	@echo "--------------------------------------------------------------"
+	perl -w $(srcdir)/check.pl $(CHECK_PL_OPTS) -a -v --nthreads=2 `pwd`/bench
+	perl -w $(srcdir)/check.pl $(CHECK_PL_OPTS) -a -v --nthreads=3 `pwd`/bench
+	perl -w $(srcdir)/check.pl $(CHECK_PL_OPTS) -a -v --nthreads=10 `pwd`/bench
+	@echo "--------------------------------------------------------------"
+	@echo "         FFTW threaded transforms passed big tests!"
+	@echo "--------------------------------------------------------------"
 
 smallcheck: bench$(EXEEXT)
 	perl -w $(srcdir)/check.pl -r -c=1 -v `pwd`/bench
@@ -622,23 +622,23 @@ smallcheck: bench$(EXEEXT)
 	@echo "--------------------------------------------------------------"
 	@echo "         FFTW transforms passed a few tests!"
 	@echo "--------------------------------------------------------------"
-#	perl -w $(srcdir)/check.pl -r --estimate -c=2 -v --nthreads=2 `pwd`/bench
-#	@echo "--------------------------------------------------------------"
-#	@echo "         FFTW threaded transforms passed a few tests!"
-#	@echo "--------------------------------------------------------------"
+	perl -w $(srcdir)/check.pl -r --estimate -c=2 -v --nthreads=2 `pwd`/bench
+	@echo "--------------------------------------------------------------"
+	@echo "         FFTW threaded transforms passed a few tests!"
+	@echo "--------------------------------------------------------------"
 
 paranoid-check: bench$(EXEEXT)
-#	perl -w $(srcdir)/check.pl -a --patient --nthreads=10 --paranoid `pwd`/bench
-#	perl -w $(srcdir)/check.pl -a --patient --nthreads=7 --paranoid `pwd`/bench
-#	perl -w $(srcdir)/check.pl -a --patient --nthreads=3 --paranoid `pwd`/bench
-#	perl -w $(srcdir)/check.pl -a --patient --nthreads=2 --paranoid `pwd`/bench
+	perl -w $(srcdir)/check.pl -a --patient --nthreads=10 --paranoid `pwd`/bench
+	perl -w $(srcdir)/check.pl -a --patient --nthreads=7 --paranoid `pwd`/bench
+	perl -w $(srcdir)/check.pl -a --patient --nthreads=3 --paranoid `pwd`/bench
+	perl -w $(srcdir)/check.pl -a --patient --nthreads=2 --paranoid `pwd`/bench
 	perl -w $(srcdir)/check.pl -a --patient --paranoid `pwd`/bench
 
 exhaustive-check: bench$(EXEEXT)
-#	perl -w $(srcdir)/check.pl -a --exhaustive --nthreads=10 --paranoid `pwd`/bench
-#	perl -w $(srcdir)/check.pl -a --exhaustive --nthreads=7 --paranoid `pwd`/bench
-#	perl -w $(srcdir)/check.pl -a --exhaustive --nthreads=3 --paranoid `pwd`/bench
-#	perl -w $(srcdir)/check.pl -a --exhaustive --nthreads=2 --paranoid `pwd`/bench
+	perl -w $(srcdir)/check.pl -a --exhaustive --nthreads=10 --paranoid `pwd`/bench
+	perl -w $(srcdir)/check.pl -a --exhaustive --nthreads=7 --paranoid `pwd`/bench
+	perl -w $(srcdir)/check.pl -a --exhaustive --nthreads=3 --paranoid `pwd`/bench
+	perl -w $(srcdir)/check.pl -a --exhaustive --nthreads=2 --paranoid `pwd`/bench
 	perl -w $(srcdir)/check.pl -a --exhaustive --paranoid `pwd`/bench
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

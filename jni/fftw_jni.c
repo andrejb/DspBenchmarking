@@ -10,7 +10,9 @@
 
 #define LOG_TAG "FFTW_JNI"
 
-static int count_exec = 0;
+static int count_exec          = 0;
+static int threads_enabled     = 0;
+static int threads_initialized = 0;
 
 static void log_callback(void* ptr, int level, const char* fmt, va_list vl) {
 	 __android_log_vprint(ANDROID_LOG_INFO, LOG_TAG, fmt, vl);
@@ -35,6 +37,35 @@ inline static void execute_fftw(double *in, int num, double **out_res) {
 	}
 
 	fftw_free(out);
+}
+
+JNIEXPORT jboolean JNICALL Java_br_usp_ime_dspbenchmarking_fftw_FFTW_areThreadsEnabled(JNIEnv *pEnv, jobject pObj) {
+	return ((threads_enabled == 1) ? JNI_TRUE : JNI_FALSE);
+}
+
+JNIEXPORT void JNICALL Java_br_usp_ime_dspbenchmarking_fftw_FFTW_removeThreadsJNI(JNIEnv *pEnv, jobject pObj) {
+	if (!threads_initialized) {
+		char buff[150];
+		sprintf(buff, "Threads weren't initialized");
+		(*pEnv)->ThrowNew(pEnv, (*pEnv)->FindClass(pEnv, "java/lang/Exception"), buff);
+	} else {
+		fftw_plan_with_nthreads(1);
+		threads_enabled = 0;
+		__android_log_print(ANDROID_LOG_INFO, LOG_TAG, "Threads disabled");
+	}
+}
+
+JNIEXPORT void JNICALL Java_br_usp_ime_dspbenchmarking_fftw_FFTW_initThreadsJNI(JNIEnv *pEnv, jobject pObj, jint num_of_threads) {
+	if (!threads_initialized && !fftw_init_threads()) {
+		char buff[150];
+		sprintf(buff, "Failed to initialize thread");
+		(*pEnv)->ThrowNew(pEnv, (*pEnv)->FindClass(pEnv, "java/lang/Exception"), buff);
+		threads_initialized = 1;
+	} else {
+		fftw_plan_with_nthreads(num_of_threads);
+		threads_enabled = 1;
+		__android_log_print(ANDROID_LOG_INFO, LOG_TAG, "Threads enabled");
+	}
 }
 
 JNIEXPORT jdoubleArray JNICALL Java_br_usp_ime_dspbenchmarking_fftw_FFTW_executeJNI(JNIEnv *pEnv, jobject pObj, jdoubleArray in) {

@@ -265,7 +265,7 @@ PATH_SEPARATOR = :
 POW_LIB = 
 PRECISION = d
 PREC_SUFFIX = 
-PTHREAD_CC = 
+PTHREAD_CC = /home/max/Src/android/adk/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86_64/bin/arm-linux-androideabi-gcc --sysroot=/home/max/Src/android/adk/android-ndk-r8e/platforms/android-8/arch-arm -std=gnu99
 PTHREAD_CFLAGS = 
 PTHREAD_LIBS = 
 RANLIB = /home/max/Src/android/adk/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86_64/bin/arm-linux-androideabi-ranlib
@@ -276,7 +276,7 @@ SHELL = /bin/sh
 SSE2_CFLAGS = 
 STACK_ALIGN_CFLAGS = 
 STRIP = /home/max/Src/android/adk/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip
-THREADLIBS = 
+THREADLIBS =  
 VERSION = 3.3.3
 abs_builddir = /home/max/Src/dspbenchmark/DspBenchmarking/jni/fftw/dft/simd/neon
 abs_srcdir = /home/max/Src/dspbenchmark/DspBenchmarking/jni/fftw/dft/simd/neon
