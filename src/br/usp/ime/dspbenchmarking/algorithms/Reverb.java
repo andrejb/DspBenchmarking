@@ -1,4 +1,8 @@
-package br.usp.ime.dspbenchmarking;
+package br.usp.ime.dspbenchmarking.algorithms;
+
+import android.util.Log;
+
+
 
 public class Reverb extends DspAlgorithm {
 	
@@ -28,6 +32,9 @@ public class Reverb extends DspAlgorithm {
 		//double g = this.getParameter1();
 		
 		// perform the reverb
+		Log.w("m", String.valueOf(m));
+		//Log.w("blockSize", String.valueOf(this.getBlockSize()));
+		//Log.w("parametr1", String.valueOf(this.getParameter1()));
 		for (int i = 0; i < m; i++)
 			buffer[i] = -g * buffer[i] + oldInput[this.getBlockSize()-m+i] + g * oldOutput[this.getBlockSize()-m+i];
 		for (int i = m; i < this.getBlockSize(); i++)

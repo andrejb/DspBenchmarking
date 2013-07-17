@@ -1,4 +1,4 @@
-package br.usp.ime.dspbenchmarking;
+package br.usp.ime.dspbenchmarking.threads;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -18,13 +18,13 @@ public class SystemWatchThread extends Thread {
 	private boolean isRunning = false;
 
 	Handler mHandler;
-	int total;
 	private int cpuUsage;
+	RandomAccessFile reader = null;
 	
 
 	// Constructor with an argument that specifies Handler on main thread
 	// to which messages will be sent by this thread.
-	SystemWatchThread(Handler h) {
+	public SystemWatchThread(Handler h) {
 		mHandler = h;
 	}
 
@@ -32,6 +32,7 @@ public class SystemWatchThread extends Thread {
 	@Override
 	public void run() {
 		isRunning = true;
+		openStatFile();
 		while (isRunning) {
 			// The method Thread.sleep throws an InterruptedException if
 			// Thread.interrupt()
@@ -42,13 +43,7 @@ public class SystemWatchThread extends Thread {
 			if (cpuUsage >= 100)
 				cpuUsage = 99;
 
-			try {
-				// Control speed of update (but precision of delay not
-				// guaranteed)
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				Log.e("ERROR", "Thread was Interrupted");
-			}
+
 
 			// Send message (with current value of total as data) to Handler
 			// on UI thread
@@ -56,11 +51,16 @@ public class SystemWatchThread extends Thread {
 
 			Message msg = mHandler.obtainMessage();
 			Bundle b = new Bundle();
-			b.putInt("total", total);
 			msg.setData(b);
 			mHandler.sendMessage(msg);
 
-			total--; // Count down
+			try {
+				// Control speed of update (but precision of delay not
+				// guaranteed)
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				Log.e("ERROR", "Thread was Interrupted");
+			}
 		}
 	}
 
@@ -74,8 +74,17 @@ public class SystemWatchThread extends Thread {
 	public boolean stopRunning() {
 		if (isRunning == false)
 			return false;
+		closeStatFile();
 		isRunning = false;
 		return true;
+	}
+	
+	private void openStatFile() {
+		try {
+			reader = new RandomAccessFile("/proc/stat", "r");
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
 	}
 	
 	/************************************************************************
@@ -83,7 +92,7 @@ public class SystemWatchThread extends Thread {
 	 ***********************************************************************/
 	private float readUsage() {
 		try {
-			RandomAccessFile reader = new RandomAccessFile("/proc/stat", "r");
+			reader.seek(0);
 			String load = reader.readLine();
 
 			String[] toks = load.split(" ");
@@ -101,7 +110,7 @@ public class SystemWatchThread extends Thread {
 
 			reader.seek(0);
 			load = reader.readLine();
-			reader.close();
+			
 
 			toks = load.split(" ");
 
@@ -117,5 +126,14 @@ public class SystemWatchThread extends Thread {
 		}
 
 		return 0;
+	}
+	
+	private void closeStatFile() {
+		try {
+			reader.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

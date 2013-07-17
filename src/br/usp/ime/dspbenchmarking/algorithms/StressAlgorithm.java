@@ -1,8 +1,7 @@
-package br.usp.ime.dspbenchmarking;
+package br.usp.ime.dspbenchmarking.algorithms;
 
 import java.util.Random;
 
-import android.util.Log;
 
 public class StressAlgorithm extends DspAlgorithm {
 

@@ -1,9 +1,10 @@
-package br.usp.ime.dspbenchmarking;
+package br.usp.ime.dspbenchmarking.streams;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder.AudioSource;
 import android.os.SystemClock;
+import android.util.Log;
 
 public class MicStream extends AudioStream {
 
@@ -38,8 +39,8 @@ public class MicStream extends AudioStream {
 
 	}
 	
-	public short[] createBuffer() {
-		return new short[bufferSize];
+	public int getBufferSize() {
+		return bufferSize;
 	}
 
 	public void scheduleDspCallback(long blockPeriodNanoseconds) {
@@ -54,6 +55,10 @@ public class MicStream extends AudioStream {
 	}
 
 	public void stopRunning() {
+		Log.i("Microphone", "Stopping MIC recording.");
+		recorder.stop();
+		recorder.release();
+		recorder = null; 
 		isRunning = false;
 	}
 	
@@ -83,7 +88,7 @@ public class MicStream extends AudioStream {
 	 * 
 	 * @return
 	 */
-	protected int getMinBufferSize() {
+	public int getMinBufferSize() {
 		return AudioRecord.getMinBufferSize(sampleRate,
 				AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
 	}

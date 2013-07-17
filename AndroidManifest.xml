@@ -22,21 +22,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LiveActivity" >
+        <activity android:name="br.usp.ime.dspbenchmarking.activities.LiveActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name="br.usp.ime.dspbenchmarking.TestActivity" >
+        <activity android:name="br.usp.ime.dspbenchmarking.activities.BenchmarkActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-                <activity android:name="br.usp.ime.dspbenchmarking.StressActivity" >
+                <activity android:name="br.usp.ime.dspbenchmarking.activities.StressActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -21,7 +21,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:onClick="toggleTests"
-            android:text="@string/start" />
+            android:textOff="@string/start" />
 
         <RelativeLayout
             android:id="@+id/linearLayout1"

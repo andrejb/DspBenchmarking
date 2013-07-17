@@ -4,6 +4,13 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/choose_an_option"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -11,35 +18,26 @@
         android:text="@string/dsp" />
 
     <Button
-        android:id="@+id/button1"
+        android:id="@+id/buttonBenchmarkActivity"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:onClick="startTestActivity"
+        android:clickable="false"
         android:text="@string/dsp_benchmarking" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/buttonStressActivity"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-                android:onClick="startStressActivity"
-        
+        android:onClick="startStressActivity"
+        android:clickable="false"
         android:text="@string/stress_test" />
 
-    <ProgressBar
-        android:id="@+id/pb1"
-        style="?android:attr/progressBarStyleHorizontal"
+    <Button
+        android:id="@+id/button3"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:indeterminate="false"
-        android:max="100" />
-
-    <EditText
-        android:id="@+id/texto1"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:hint="" >
-
-        <requestFocus />
-    </EditText>
+        android:onClick="startAllTestsActivity"
+        android:text="@string/run_all_tests" />
 
 </LinearLayout>

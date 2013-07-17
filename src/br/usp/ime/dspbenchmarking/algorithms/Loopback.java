@@ -1,4 +1,6 @@
-package br.usp.ime.dspbenchmarking;
+package br.usp.ime.dspbenchmarking.algorithms;
+
+
 
 public class Loopback extends DspAlgorithm {
 

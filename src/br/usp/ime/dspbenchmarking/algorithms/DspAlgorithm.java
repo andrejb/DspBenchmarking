@@ -1,4 +1,4 @@
-package br.usp.ime.dspbenchmarking;
+package br.usp.ime.dspbenchmarking.algorithms;
 
 public abstract class DspAlgorithm {
 

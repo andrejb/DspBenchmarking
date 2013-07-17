@@ -1,5 +1,8 @@
-package br.usp.ime.dspbenchmarking;
+package br.usp.ime.dspbenchmarking.activities;
 
+import br.usp.ime.dspbenchmarking.R;
+import br.usp.ime.dspbenchmarking.threads.DspThread;
+import br.usp.ime.dspbenchmarking.threads.SystemWatchThread;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
@@ -7,7 +10,7 @@ import android.os.Message;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-public class DspActivity extends Activity {
+public abstract class DspActivity extends Activity {
 
 	// Views from stats UI
 	private ProgressBar cpuUsageBar;
@@ -20,10 +23,15 @@ public class DspActivity extends Activity {
 	private TextView readCyclesView = null;
 	private TextView callbackPeriodView = null;
 	private TextView elapsedTimeView = null;
+	
+	// possibly used on subviews
+	protected TextView totalTimeView = null;
 
 	// Threads
 	protected SystemWatchThread swt;
 	protected DspThread dt;
+	
+	protected long totalTime;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -52,6 +60,10 @@ public class DspActivity extends Activity {
 	final Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
+			// set total time
+			//if (dt != null && totalTimeView != null)
+			//	totalTimeView.setText(String.format("%f",
+			//			(new Float(totalTime/1000))));
 			// set sample read mean time
 			if (dt != null)
 				sampleReadTimeView.setText(String.format("%.6f",
@@ -86,10 +98,10 @@ public class DspActivity extends Activity {
 			if (swt != null)
 				cpuUsageBar.setProgress(swt.getCpuUsage());
 			// set amount of DSP cycle used with processing
-			if (dt != null)
-				dspCycleTimeBar
-					.setProgress((int) ((dt.getDspCallbackMeanTime() / dt
-							.getBlockPeriod()) * 100));
+						if (dt != null)
+							dspCycleTimeBar
+								.setProgress((int) ((dt.getDspCallbackMeanTime() / dt
+										.getBlockPeriod()) * 100));
 
 		}
 	};
