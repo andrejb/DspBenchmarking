@@ -59,7 +59,7 @@ public abstract class TestActivity extends DspActivity {
 	final String dateFormat = "yyyy-MM-dd_HH-mm-ss";
 
 	/**
-	 * 
+	 * Executes upon creation of activity, configures screen.
 	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -82,7 +82,7 @@ public abstract class TestActivity extends DspActivity {
 
 
 	/**
-	 * 
+	 * When the test finishes, send results back to previous activity and finish.
 	 */
 	protected void turnOff(String title) {
 		sendResults(title);
@@ -95,14 +95,21 @@ public abstract class TestActivity extends DspActivity {
 		finish();
 	}
 	
+	/**
+	 * Stop DSP thread, mark test as canceled and finish.
+	 */
 	public void onBackPressed() {
 		if (dt != null)
-			dt.suspendDsp();
+			dt.stopDspThread();
 		dt = null;
 		setResult(RESULT_CANCELED);
 		finish();
 	}
 
+	/**
+	 * 
+	 * @param v
+	 */
 	public void toggleTests(View v) {
 		if (toggleTestsButton.isChecked()) {
 			toggleTestsButton.setClickable(false);
@@ -115,6 +122,7 @@ public abstract class TestActivity extends DspActivity {
 
 
 	/**
+	 * Create and return a file to write results.
 	 * 
 	 * @return
 	 */
@@ -151,6 +159,7 @@ public abstract class TestActivity extends DspActivity {
 
 
 	/**
+	 * Get formatted info about Android build.
 	 * 
 	 * @return
 	 */
@@ -184,7 +193,9 @@ public abstract class TestActivity extends DspActivity {
 	}
 
 
-
+	/**
+	 * Start a test.
+	 */
 	protected void launchTest() {
 		dt.setBlockSize(blockSize);
 		dt.setAlgorithm(algorithm);
@@ -197,6 +208,7 @@ public abstract class TestActivity extends DspActivity {
 
 
 	/**
+	 * Verify if external storage is present and is writable.
 	 * 
 	 * @throws IOException
 	 */
@@ -215,6 +227,7 @@ public abstract class TestActivity extends DspActivity {
 	}
 
 	/**
+	 * Get a formatted name for the file with tests results.
 	 * 
 	 * @return
 	 */
@@ -231,6 +244,11 @@ public abstract class TestActivity extends DspActivity {
 	}
 
 
+	/**
+	 * Send results to email.
+	 * 
+	 * @param title
+	 */
 	private void sendResults(String title) {
 		Intent sendIntent = new Intent(Intent.ACTION_SEND);
 		sendIntent.putExtra(Intent.EXTRA_TEXT, results);
@@ -279,6 +297,9 @@ public abstract class TestActivity extends DspActivity {
 		blockSizeView.setText(String.valueOf(blockSize));
 	}
 
+	/**
+	 * Initialize tests.
+	 */
 	protected void initTests() {
 		Log.w("StressFlow", "initTests");
 		// Opens results file

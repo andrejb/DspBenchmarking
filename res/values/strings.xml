@@ -28,8 +28,10 @@
         <item>FFT</item>
         <!-- <item>Phase Vocoder</item>
         <item >Stress</item>-->
-        <item >Stress</item>
-        <item >Additive Synthesis</item>
+        <item >Convolution</item>
+        <item >Additive Synthesis (sine)</item>
+        <item >Additive Synthesis (linear interp)</item>
+        <item >Additive Synthesis (cubic interp)</item>
     </string-array>
     
   	<string-array name="block_size_array">
@@ -60,7 +62,7 @@
         <string name="elapsed_time">"Elapsed time:  "</string>
         <string name="param_1">"Parameter 1:  "</string>
         <string name="audio_source">Audio source:</string>
-        <string name="dsp_benchmarking">Algorithms Test</string>
+        <string name="dsp_benchmarking">Executando testes</string>
         <string name="start">start</string>
         <string name="loopback">"Loopback:  "</string>
         <string name="dash">-</string>
@@ -74,4 +76,7 @@
     	<string name="run_all_tests">TESTE: clique para iniciar os testes (ao final você poderá nos enviar um email com os resultados).</string>
     	<string name="choose_an_option">Escolha uma opção:</string>
     	<string name="explain_tests">Para rodar os testes no aparelho, clique no botão a seguir. Ao final, você terá a opção de nos enviar um email com os resultados.</string>
+    	<string name="airplane_mode">Coloque o dispositivo no Modo Avião para liberar os testes.</string>
+    	<string name="welcome">Bem vindo/a ao DSP Benchmarking!</string>
+    	<string name="instructions">\nMuito obrigado por aceitar ajudar este trabalho de mestrado e submeter seu aparelho com Android a uma bateria de testes de processamento de áudio em tempo real.\n\nO código fonte deste aplicativo e informações sobre como verificar a autenticidade deste pacote estão disponíveis no seguinte endereço:\n\nhttp://www.ime.usp.br/~ajb/wiki/android\n\n</string>
 </resources>

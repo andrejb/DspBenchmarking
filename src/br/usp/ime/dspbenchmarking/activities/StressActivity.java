@@ -355,7 +355,7 @@ public class StressActivity extends TestActivity {
 		dt.setAlgorithm(algorithm);
 		dt.setInputStream(is);
 		dt.setMaxDspCycles(MAX_DSP_CYCLES);
-		dt.setFilterSize(filterSize);
+		dt.setStressParameter(filterSize);
 		dt.setParams(0.5);
 	}
 
@@ -368,7 +368,7 @@ public class StressActivity extends TestActivity {
 		Log.w("StressFlow", "launchTest");
 		// set test-specific variables
 		dt.setBlockSize(blockSize);
-		dt.setFilterSize(filterSize);
+		dt.setStressParameter(filterSize);
 		// launch
 		super.launchTest();
 	}

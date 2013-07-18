@@ -1,0 +1,40 @@
+package br.usp.ime.dspbenchmarking.algorithms;
+
+/**
+ * This algorithm performs an additives synthesis using table lookup with linear interpolation.
+ * 
+ * @author andrejb
+ *
+ */
+public class AdditiveSynthesisLookupTableLinear extends
+		AdditiveSynthesisLookupTable {
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param sRate
+	 * @param bSize
+	 * @param stressParam
+	 */
+	public AdditiveSynthesisLookupTableLinear(int sRate, int bSize,
+			int stressParam) {
+		super(sRate, bSize, stressParam);
+	}
+
+	/**
+	 * Linear interpolation.
+	 */
+	protected float interp(float i)
+	{
+		float y = i - (int) i;
+		int i0,i1;
+		i0 = ((int)i) % sine.length;
+		if (i0 < 0)
+			i0 += sine.length;
+		i1 = (i0+1) % sine.length;
+		if (i1 < 0)
+			i1 += sine.length;
+		return (sine[i1] - sine[i0])*y + sine[i0];
+	}
+
+}

@@ -1,33 +1,45 @@
 package br.usp.ime.dspbenchmarking.algorithms;
 
 
+/**
+ * This algorithm defines an Additive Synthesis using a number of oscillators 
+ * equal to the stressParameter. The oscilator is calculated using Java's
+ * Math.sin() function.
+ *  
+ * @author andrejb
+ *
+ */
+public class AdditiveSynthesis extends StressAlgorithm {
 
-public class AdditiveSynthesis extends DspAlgorithm {
-
-	private int k;
-	private double sine[];	
 	private static final double TWOPI = 2.0 * Math.PI;
-	private static final int SINETABLE_SIZE = 1024;
-	private int ind;
+	private int lastInd;  // Used to preserve phase.
 	
-	public AdditiveSynthesis(int sRate, int bSize) {
+	public AdditiveSynthesis(int sRate, int bSize, int stressParam) {
 		super(sRate, bSize);
-		k = 1;
-		double[] sine = new double[1024];
-		for (int i=0; i<SINETABLE_SIZE; i++)
-			sine[i] = Math.sin(TWOPI * i / SINETABLE_SIZE);
-		ind = 0;
+		setStressParameter(stressParam);
+		lastInd = 0;
 	}
 
+	/**
+	 * The perform method is 
+	 */
 	@Override
 	public void perform(double[] buffer) {
-		k = (int) (this.getParameter1()*10);
 		for (int n = 0; n < buffer.length; n++) {
-			for (int i = 0; i < k; i++) {
-				//buffer[n] = sine[];
-				buffer[n] = Math.sin(TWOPI*110*ind*k/44100);
-				ind++;
-			}
+			buffer[n] = 0;
+			for (int i = 0; i < stressParameter; i++)
+				buffer[n] += Math.sin(TWOPI*110*(lastInd+n)*i/44100);
+			buffer[n] /= stressParameter;  // normalize
+			lastInd += buffer.length;  // preserve phase
 		}
+	}
+	
+	/**
+	 * When changing the parameter using the GUI, also update the number of
+	 * oscillators used in calculation.
+	 */
+	public void setParams(double param1) {
+		super.setParams(param1);
+		setStressParameter((int) (10 * param1));
 	}
 }

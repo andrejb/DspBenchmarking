@@ -1,9 +1,12 @@
 package br.usp.ime.dspbenchmarking.algorithms;
 
-import android.util.Log;
 
-
-
+/**
+ * This class implements a simple IIR reverberation filter.
+ * 
+ * @author andrejb
+ *
+ */
 public class Reverb extends DspAlgorithm {
 	
 	private double oldOutput[];
@@ -17,8 +20,6 @@ public class Reverb extends DspAlgorithm {
 	}
 	
 	public void perform(double[] buffer) {
-		//int delayMilliseconds = 5;
-		//int delaySamples = (int)((float)delayMilliseconds * this.getSampleRate() / 1000);
 		// holds old input values
 		double[] tmpOldInput = new double[this.getBlockSize()];
 		System.arraycopy(buffer, 0, tmpOldInput, 0, this.getBlockSize());
@@ -26,15 +27,11 @@ public class Reverb extends DspAlgorithm {
 		int m = (int) (this.getParameter1() * this.getBlockSize());
 		if (m < 1)
 			m=1;
-		//m=40;
 		// feedback gain
 		double g = 0.7;
 		//double g = this.getParameter1();
 		
 		// perform the reverb
-		Log.w("m", String.valueOf(m));
-		//Log.w("blockSize", String.valueOf(this.getBlockSize()));
-		//Log.w("parametr1", String.valueOf(this.getParameter1()));
 		for (int i = 0; i < m; i++)
 			buffer[i] = -g * buffer[i] + oldInput[this.getBlockSize()-m+i] + g * oldOutput[this.getBlockSize()-m+i];
 		for (int i = m; i < this.getBlockSize(); i++)

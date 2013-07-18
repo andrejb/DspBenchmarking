@@ -125,6 +125,7 @@ public class LiveActivity extends DspActivity {
 				dt.setInputStream(is);
 			}
 			dt.start();
+			dt.resumeDsp();
 			// mProgressStatus = (int) readUsage() * 100;
 		}
 		/* Turn DSP OFF */

@@ -1,61 +1,39 @@
 package br.usp.ime.dspbenchmarking.algorithms;
 
-import java.util.Random;
 
+/**
+ * A stress algorithm is an algorithm that may change it's computational cost
+ * so during a test it this cost can either be incremented or decremented to
+ * determine if a given algorithm is feasible in a specific device. 
+ * 
+ * @author andrejb
+ *
+ */
+public abstract class StressAlgorithm extends DspAlgorithm {
 
-public class StressAlgorithm extends DspAlgorithm {
-
-	private int filterSize;
-	private double[] buf;
-	private int[][] index;
-	private double[] coef;
-
-	public StressAlgorithm(int sRate, int bSize, int fSize) {
+	/**
+	 * This parameter should be used by stress algorithms to control the size
+	 * or computational intensity of their work.
+	 */
+	protected int stressParameter;
+	
+	/**
+	 * The constructor just saves the sample rate and block size.
+	 * 
+	 * @param sRate
+	 * @param bSize
+	 */
+	public StressAlgorithm(int sRate, int bSize) {
 		super(sRate, bSize);
-		setFilterSize(fSize);
 	}
 	
-	public void setFilterSize(int fSize) {
-		buf = new double[blockSize];
-		filterSize = fSize;
-		index = new int[blockSize][fSize];
-		coef = new double[fSize];
-		calcIndex();
-		calcCoef();	}
-
-	private void calcIndex() {
-		for (int n = 0; n < blockSize; n++) {
-			for (int k = 0; k < filterSize; k++) {
-				index[n][k]= (n-k) % blockSize;
-				if (index[n][k] < 0)
-					index[n][k] += blockSize;
-			}
-		}
-	}
-
-	private void calcCoef() {
-		Random r = new Random();
-		for (int k = 0; k < filterSize; k++)
-			coef[k]= r.nextDouble();
+	/**
+	 * Set the stress parameter.
+	 * 
+	 * @param fSize
+	 */
+	public void setStressParameter(int stressParam) {
+		stressParameter = stressParam;
 	}
 	
-	@Override
-	public void perform(double[] buffer) {
-		/*Log.i("perform", "blockSize="+blockSize);
-		Log.i("perform", "filterSize="+filterSize);
-		Log.i("perform", "indexX="+index.length);
-		Log.i("perform", "indexY="+index[0].length);*/
-		for (int n = 0; n < buffer.length; n++) {
-			buf[n] = wmean(buffer, n);
-		}
-	}
-
-	private double wmean(double buffer[], int n) {
-		double sum = 0;
-		for (int k = 0; k < filterSize; k++)
-			sum += coef[k]*buffer[index[n][k]];
-		return sum / n;
-	}
-
-
 }

@@ -10,9 +10,15 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
-import android.view.View;
-import android.widget.ProgressBar;
 
+
+/**
+ * ATTENTION: This class is currently not used. This is on of the reasons
+ * why is is not properly documented.
+ * 
+ * @author andrejb
+ *
+ */
 public class BenchmarkActivity extends TestActivity {
 
 	// Test config
