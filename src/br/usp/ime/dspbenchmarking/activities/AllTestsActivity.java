@@ -50,10 +50,16 @@ public class AllTestsActivity extends Activity {
 	protected TextView algorithmName = null;
 	protected TextView blockSizeView = null;
 
+	// Block size limits
+	private final int START_BLOCK_SIZE = (int) Math.pow(2,4);
+	private final int END_BLOCK_SIZE = (int) Math.pow(2,13);
+	
+	// Number of algorithms tested
+	private final int ALGORITHMS_TESTED = 8;
 	// Variables for setting views
 	protected final double LOG2 = Math.log(2);
 	protected final int LOG_START_BLOCK_SIZE = (int) Math.log(START_BLOCK_SIZE);
-	protected double totalProgress = ((Math.log(END_BLOCK_SIZE) - LOG_START_BLOCK_SIZE) / LOG2 + 1) * 7;
+	protected double totalProgress = ((Math.log(END_BLOCK_SIZE) - LOG_START_BLOCK_SIZE) / LOG2 + 1) * ALGORITHMS_TESTED;
 
 	// Test results are stored in this variable
 	String results = getResultsHeader();
@@ -64,11 +70,7 @@ public class AllTestsActivity extends Activity {
 	int algorithm;
 	protected int maxDspCycles;
 	protected int stressParameter;  // in case the test is a stress test.
-	private static final int MAX_DSP_CYCLES = 1000;
-
-	// Block size limits
-	static final int START_BLOCK_SIZE = (int) Math.pow(2,4);
-	static final int END_BLOCK_SIZE = (int) Math.pow(2,13);
+	private final int MAX_DSP_CYCLES = 1000;
 
 	// Time keeping
 	private long lastTotalTime = 0;
@@ -85,37 +87,9 @@ public class AllTestsActivity extends Activity {
 	private final String MESSAGE_TOTAL_TIME = "total-time";
 	private final String MESSAGE_STRESS_PARAM = "stress-param";
 
-	// Message handler lock
+	// Threads
 	private TestControlThread mt;
-	static class Lock extends Object {
-	}
-	static public Lock messageHandlerLock = new Lock();
-
-	public class Barrier
-	{
-		public synchronized void block() throws InterruptedException
-		{
-			Log.i("BARRIER", "Blocking...");
-			wait();
-			Log.i("BARRIER", "Released.");
-		}
-
-		public synchronized void release() throws InterruptedException
-		{
-			Log.i("BARRIER", "Notifying.");
-			notify();
-		}
-
-		public synchronized void releaseAll() throws InterruptedException
-		{
-			Log.i("BARRIER", "Notifying all.");
-			notifyAll();
-		}
-
-	}
-
 	protected DspThread dt;
-	protected long totalTime;
 
 	/*************************************************************************
 	 * Constructor
@@ -132,18 +106,6 @@ public class AllTestsActivity extends Activity {
 		// Set the view
 		setContentView(R.layout.tests);
 		super.onCreate(savedInstanceState);
-
-		// Hide everything we don't need
-		/*cpuUsageBar.setVisibility(View.GONE);
-		sampleReadTimeView.setVisibility(View.GONE);
-		sampleWriteTimeView.setVisibility(View.GONE);
-		dspCallbackTimeView.setVisibility(View.GONE);
-		dspCycleTimeBar.setVisibility(View.GONE);
-		dspPeriodView.setVisibility(View.GONE);
-		dspCyclesView.setVisibility(View.GONE);
-		readCyclesView.setVisibility(View.GONE);
-		callbackPeriodView.setVisibility(View.GONE);
-		elapsedTimeView.setVisibility(View.GONE);*/
 
 		// Find toggle button
 		toggleTestsButton = (ToggleButton) findViewById(R.id.toggleTests);
@@ -225,8 +187,11 @@ public class AllTestsActivity extends Activity {
 				algorithmName.setText("Additive Synthesis (linear)  ");
 			else if (algorithm == 6)
 				algorithmName.setText("Additive Synthesis (cubic)  ");
+			else if (algorithm == 7)
+				algorithmName.setText("Additive Synthesis (truncated)  ");
 			lastAlg = algorithm;
 		}
+		algorithmName.setText(dt.getAlgorithmName());
 		blockSizeView.setText(String.valueOf(blockSize));
 	}
 
@@ -251,9 +216,9 @@ public class AllTestsActivity extends Activity {
 	/**
 	 * Finish tests.
 	 */
-	private void finishTests() {
+	private void finishTests(long totalTime) {
 		// get total time
-		String timeTotal = new String("# total time: " + ((float)totalTime / 1000) + "\n");
+		String timeTotal = new String("# total time: " + ((float) totalTime / 1000) + "\n");
 		results += timeTotal;
 		// close the input stream
 		try {
@@ -332,7 +297,6 @@ public class AllTestsActivity extends Activity {
 			String action = msg.getData().getString(MESSAGE_ACTION);
 
 			Log.i("MSG HANDLER", "Received control message, will now act...");
-			synchronized (messageHandlerLock) {
 				Log.i("MSG HANDLER", "Acquired lock.");
 				// launch a new test
 				if (action.equals(MESSAGE_LAUNCH_TEST)) {
@@ -356,7 +320,7 @@ public class AllTestsActivity extends Activity {
 				// finish all tests
 				else if (action.equals(MESSAGE_FINISH_TESTS)) {
 					Log.i("MSG HANDLER", "Finishing tests.");
-					finishTests();
+					finishTests(msg.getData().getLong(MESSAGE_TOTAL_TIME));
 					sendResults("Test results");
 					Log.i("MSG HANDLER", "Finished finishing tests.");
 				}
@@ -364,15 +328,16 @@ public class AllTestsActivity extends Activity {
 				// store results
 				else if (action.equals(MESSAGE_STORE_RESULTS)) {
 					Log.i("MSG HANDLER", "Storing results.");
-					storeResults(msg.getData().getInt(MESSAGE_STRESS_PARAM));
+					storeResults(
+							msg.getData().getInt(MESSAGE_STRESS_PARAM),
+							msg.getData().getLong(MESSAGE_TOTAL_TIME));
 					Log.i("MSG HANDLER", "Finishing storing results.");
 				}
-				// Release the lock.
-				Log.i("MSG HANDLER", "Releasing lock.");
+				
+				// Release the control thread.
+				Log.i("MSG HANDLER", "Releasing control thread.");
 				Message reply = mt.cHandler.obtainMessage();
 				mt.cHandler.sendMessage(reply);
-
-			}
 		}
 	};
 
@@ -387,7 +352,7 @@ public class AllTestsActivity extends Activity {
 	 * 
 	 * @param maxFiltersize
 	 */
-	private void storeResults(int stressParam) {
+	private void storeResults(int stressParam, long totalTime) {
 		String info = (new String(getDspThreadInfo(stressParam)));
 		info += " # test time: " + ((float)(totalTime - lastTotalTime)/ 1000) + " s\n";
 		lastTotalTime = totalTime;
@@ -575,7 +540,7 @@ public class AllTestsActivity extends Activity {
 								SystemClock.uptimeMillis() - startTime, -1);
 
 					// increase status bar
-					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/7);
+					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/ALGORITHMS_TESTED);
 					progressBar
 					.setProgress((int)((actualProgress / totalProgress) * 100));
 					
@@ -667,13 +632,6 @@ public class AllTestsActivity extends Activity {
 						if (controlThreadRunning)
 							sendMessage(MESSAGE_LAUNCH_TEST, blockSize, algorithm, maxDspCycles, -1, stressParam);
 
-						// wait for test to start
-						//try {
-						//	Thread.sleep(2000);
-						//} catch (InterruptedException e) {
-						//	Log.e("ERROR", "Thread was Interrupted");
-						//}
-
 						// wait for test to end
 						while (controlThreadRunning && !dt.isSuspended()) {
 							if (dt.getDspCallbackMeanTime() > dt.getBlockPeriod() && dt.getCallbackTicks() > 100) {
@@ -706,18 +664,6 @@ public class AllTestsActivity extends Activity {
 						// release test
 						if (controlThreadRunning)
 							sendMessage(MESSAGE_RELEASE_TEST, -1, -1, -1, SystemClock.uptimeMillis() - startTime, -1);
-						//try {
-						//	Thread.sleep(2000);
-						//} catch (InterruptedException e) {
-						//	Log.e("ERROR", "Thread was Interrupted");
-						//}
-						//System.gc();
-						// wait for garbage collector
-						//try {
-						//	Thread.sleep(5000);
-						//} catch (InterruptedException e) {
-						//	Log.e("ERROR", "Thread was Interrupted");
-						//}
 						
 						// break if thread was interrupted.
 						if (!controlThreadRunning)
@@ -728,7 +674,7 @@ public class AllTestsActivity extends Activity {
 					if (controlThreadRunning)
 						sendMessage(MESSAGE_STORE_RESULTS, -1, -1, -1, SystemClock.uptimeMillis() - startTime, m);
 
-					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/7);
+					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/ALGORITHMS_TESTED);
 					progressBar.setProgress(((int)((actualProgress / totalProgress) * 100)));
 					
 					// break if thread was interrupted.
@@ -746,7 +692,7 @@ public class AllTestsActivity extends Activity {
 
 			// Turn off when done.
 			if (controlThreadRunning)
-				sendMessage(MESSAGE_FINISH_TESTS, -1, -1, -1, -1, -1);
+				sendMessage(MESSAGE_FINISH_TESTS, -1, -1, -1, SystemClock.uptimeMillis() - startTime, -1);
 		}
 	}
 
@@ -823,7 +769,7 @@ public class AllTestsActivity extends Activity {
 			.setCancelable(false)
 			.setPositiveButton("Sim", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
-					finishTests();
+					finishTests(0);
 					AllTestsActivity.this.finish();
 				}
 			})

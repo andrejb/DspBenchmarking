@@ -107,4 +107,9 @@ public abstract class DspAlgorithm {
 		return parameter1;
 	}
 	
+	/**
+	 * @return The name of the algorithm.
+	 */
+	abstract public String getAlgorithmName();
+	
 }

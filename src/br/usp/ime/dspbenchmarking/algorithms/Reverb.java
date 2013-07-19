@@ -52,4 +52,11 @@ public class Reverb extends DspAlgorithm {
 		java.util.Arrays.fill(oldOutput, 0);
 	}
 	
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "IIR Filter Reverb";
+	}
 }

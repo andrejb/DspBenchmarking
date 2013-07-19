@@ -57,4 +57,12 @@ public class AdditiveSynthesisSine extends StressAlgorithm {
 		else
 			coefficient = 1;
 	}
+	
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "Additive Synthesis (sine)";
+	}
 }

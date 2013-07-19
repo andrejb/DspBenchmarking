@@ -238,6 +238,15 @@ public class DspThread extends Thread {
 		}
 		setParams(parameter1);
 	}
+	
+	/**
+	 * @return The name of the current algorithm.
+	 */
+	public String getAlgorithmName() {
+		if (dspAlgorithm == null)
+			return "";
+		return dspAlgorithm.getAlgorithmName();
+	}
 
 	/**
 	 * Set the stress parameter used when running stress test algorithms.

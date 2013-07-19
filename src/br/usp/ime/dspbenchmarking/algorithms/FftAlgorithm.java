@@ -44,5 +44,12 @@ public class FftAlgorithm extends DspAlgorithm {
 		else
 			fft.setBits((int) (Math.log10(getBlockSize()) / Math.log10(2)));
 	}
-
+	
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "FFT";
+	}
 }

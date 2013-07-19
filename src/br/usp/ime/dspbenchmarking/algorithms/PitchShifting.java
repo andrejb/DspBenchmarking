@@ -111,4 +111,11 @@ public class PitchShifting extends DspAlgorithm {
 	//	return r;
 	//}
 
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "Pitch Shifting";
+	}
 }

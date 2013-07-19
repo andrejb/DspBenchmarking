@@ -82,4 +82,5 @@
     	<string name="instructions">\nMuito obrigado por aceitar ajudar este trabalho de mestrado e submeter seu aparelho com Android a uma bateria de testes de processamento de áudio em tempo real.\n\nPor favor, encerre todos os aplicativos que estiverem ativos no telefone e coloque-o no \&quot;Modo Avião\&quot; antes de executar os testes.\n\nO código fonte deste aplicativo e informações sobre como verificar a autenticidade deste pacote estão disponíveis no seguinte endereço:\n\nhttp://www.ime.usp.br/~ajb/wiki/android\n\n</string>
     	<string name="current_test">&quot;Teste atual:  &quot;</string>
     	<string name="progress">Progresso:</string>
+    	<string name="dash_with_spaces">&quot;  -  &quot;</string>
 </resources>

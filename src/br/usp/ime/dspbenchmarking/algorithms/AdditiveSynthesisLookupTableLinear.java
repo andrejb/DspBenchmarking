@@ -37,4 +37,11 @@ public class AdditiveSynthesisLookupTableLinear extends
 		return (sine[i1] - sine[i0])*y + sine[i0];
 	}
 
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "Additive Synthesis (linear)";
+	}
 }

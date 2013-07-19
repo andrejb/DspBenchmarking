@@ -57,5 +57,11 @@ public class Convolution extends StressAlgorithm {
 		return sum / n;
 	}
 
-
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "Convolution";
+	}
 }

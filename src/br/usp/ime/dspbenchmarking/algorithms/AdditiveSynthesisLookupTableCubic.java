@@ -33,4 +33,12 @@ AdditiveSynthesisLookupTable {
 			i3 += sine.length;
 		return -y*(y-1)*(y-2)*sine[i0]/6+(y+1)*(y-1)*(y-2)*sine[i1]/2-(y+1)*y*(y-2)*sine[i2]/2+(y+1)*y*(y-1)*sine[i3]/6;
 	}
+
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "Additive Synthesis (cubic)";
+	}
 }

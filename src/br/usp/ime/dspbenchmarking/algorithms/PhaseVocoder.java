@@ -99,5 +99,13 @@ public class PhaseVocoder extends DspAlgorithm {
 		}
 		return x;
 	}
+	
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "Phase Vocoder";
+	}
 
 }

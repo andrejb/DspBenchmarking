@@ -33,4 +33,12 @@ public class AdditiveSynthesisLookupTableTruncated extends
 			i0 += sine.length;
 		return sine[i0];
 	}
+	
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "Additive Synthesis (truncated)";
+	}
 }

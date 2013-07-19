@@ -1,7 +1,14 @@
 package br.usp.ime.dspbenchmarking.algorithms;
 
 
-
+/**
+ * This class implements a simple loopback algorithm, that actually does
+ * nothing. It is meant to be used as a reference of the minimal time the
+ * DSP infrastructure takes. 
+ * 
+ * @author andrejb
+ *
+ */
 public class Loopback extends DspAlgorithm {
 
 	public Loopback(int sRate, int bSize) {
@@ -11,6 +18,14 @@ public class Loopback extends DspAlgorithm {
 
 	public void perform(double[] buffer) {
 
+	}
+	
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "Loopback";
 	}
 	
 }
