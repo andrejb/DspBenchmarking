@@ -1,9 +1,9 @@
 package br.usp.ime.dspbenchmarking.activities;
 
 import java.io.IOException;
-
 import br.usp.ime.dspbenchmarking.R;
 import br.usp.ime.dspbenchmarking.threads.DspThread;
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -272,6 +272,7 @@ public class BenchmarkActivity extends TestActivity {
 	 *   - Configura os testes.
 	 *   - Escreve os resultados dos testes.
 	 ***********************************************************************/
+	@SuppressLint("HandlerLeak")
 	final Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {

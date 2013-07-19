@@ -42,4 +42,14 @@ public class Reverb extends DspAlgorithm {
 
 	}
 	
+	/**
+	 * Take care of reinitialize arrays when block size is changed.
+	 */
+	public void setBlockSize(int bSize) {
+		super.setBlockSize(bSize);
+		oldOutput = new double[bSize];
+		oldInput = new double[bSize];
+		java.util.Arrays.fill(oldOutput, 0);
+	}
+	
 }

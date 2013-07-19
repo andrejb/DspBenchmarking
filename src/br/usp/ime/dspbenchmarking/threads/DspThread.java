@@ -3,7 +3,7 @@ package br.usp.ime.dspbenchmarking.threads;
 import java.io.IOException;
 import java.io.InputStream;
 
-import br.usp.ime.dspbenchmarking.algorithms.AdditiveSynthesis;
+import br.usp.ime.dspbenchmarking.algorithms.AdditiveSynthesisSine;
 import br.usp.ime.dspbenchmarking.algorithms.AdditiveSynthesisLookupTableCubic;
 import br.usp.ime.dspbenchmarking.algorithms.AdditiveSynthesisLookupTableLinear;
 import br.usp.ime.dspbenchmarking.algorithms.DspAlgorithm;
@@ -45,12 +45,12 @@ public class DspThread extends Thread {
 	private int algorithm;
 	private double parameter1;
 	private int maxDspCycles;  // 0 means infinite
-	
+
 	// Audio source variables
 	static public final int AUDIO_SOURCE_MIC = 0;
 	static public final int AUDIO_SOURCE_WAV = 1;
 	private int audioSource;
-	
+
 	// Input stream variables
 	private InputStream inputStream = null;  // suppose we will receive from MIC
 	AudioTrack track = null;
@@ -58,7 +58,7 @@ public class DspThread extends Thread {
 	final int BUFFER_SIZE_IN_BLOCKS = 256;
 	int jx = 0;
 	double[] performBuffer = null;
-
+	
 	// Time tracking variables
 	private long sampleWriteTime = 0; // sum of time needed to write samples
 	private long dspPerformTime = 0; // sum of dsp perform routine times
@@ -72,18 +72,21 @@ public class DspThread extends Thread {
 
 	//Stressing
 	int stressParameter;
-	
+
 	// Estado
 	private static final int STATE_STOPPED = 0;
 	private static final int STATE_PROCESSING = 1;
 	private static final int STATE_SUSPENDED = 2;
 	private int state = STATE_STOPPED;
 
+	// DSP algorithms
+	private DspAlgorithm[] algorithms = new DspAlgorithm[7];
+
 
 	/************************************************************************
 	 * Constructor
 	 ***********************************************************************/
-	
+
 	/**
 	 * Creates a DSP Thread that runs for a maximum amount of cycles and a
 	 * filterSize for stress testing.
@@ -91,7 +94,17 @@ public class DspThread extends Thread {
 	public DspThread() {
 		// set priority for this thread
 		android.os.Process
-			.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+		.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+
+		// Instantiate algorithms
+		algorithms[0] = new Loopback(44100, 64);
+		algorithms[1] = new Reverb(44100, 64);
+		algorithms[2] = new FftAlgorithm(44100, 64);
+		algorithms[3] = new Convolution(44100, 64, 1);
+		algorithms[4] = new AdditiveSynthesisSine(44100, 64, 1);
+		algorithms[5] = new AdditiveSynthesisLookupTableLinear(44100, 64, 1);
+		algorithms[6] = new AdditiveSynthesisLookupTableCubic(44100, 64, 1);
+
 		// set default DSP values
 		setAlgorithm(0);  // Loopback
 		setBlockSize(64);  // this must be done after we have set an algorithm
@@ -122,7 +135,7 @@ public class DspThread extends Thread {
 			audioStream.setDspCallback(new DspPerformCallback());
 		}
 	}
-	
+
 
 	/**
 	 * Schedule the DSP callback.
@@ -133,7 +146,7 @@ public class DspThread extends Thread {
 		else if (audioSource == AUDIO_SOURCE_MIC)
 			audioStream.scheduleDspCallback(0);
 	}
-	
+
 	/**
 	 * Reset thread statistics
 	 */
@@ -146,7 +159,7 @@ public class DspThread extends Thread {
 		if (audioStream != null)  // if run too early maybe there's no audioStream yet
 			audioStream.reset();
 	}
-	
+
 	/**
 	 * Instantiate and configure the player.
 	 */
@@ -163,7 +176,7 @@ public class DspThread extends Thread {
 					AudioTrack.MODE_STREAM); // streaming or static buffer.
 		}
 	}
-	
+
 	/************************************************************************
 	 * Setters/getters
 	 ***********************************************************************/
@@ -175,7 +188,7 @@ public class DspThread extends Thread {
 	public void setInputStream(InputStream stream) {
 		inputStream = stream;
 	}
-	
+
 	/**
 	 * Set the audio source.
 	 * @param source
@@ -184,7 +197,7 @@ public class DspThread extends Thread {
 		audioSource = source;
 	}
 
-	
+
 	/**
 	 * Set the maximum number of DSP cycles this thread is allowed to run.
 	 * After that, the thread becomes suspended.
@@ -212,33 +225,12 @@ public class DspThread extends Thread {
 		// set the DSP algorithm
 		Log.i("DSP", "Defining new algorithm...");
 		algorithm = alg;
-		if (alg == 0) {
-			dspAlgorithm = new Loopback(sampleRate, blockSize);
-			Log.i("DSP", "Loopback algorithm set.");
-		}
-		else if (alg == 1) {
-			dspAlgorithm = new Reverb(sampleRate, blockSize);
-			Log.i("DSP", "Reverb algorithm set.");
-		}
-		else if (alg == 2) {
-			dspAlgorithm = new FftAlgorithm(sampleRate, blockSize);
-			Log.i("DSP", "FFT algorithm set.");
-		}
-		else if (alg == 3) {
-			dspAlgorithm = new Convolution(sampleRate, blockSize, stressParameter);
-			Log.i("DSP", "Convolution algorithm set.");
-		}
-		else if (alg == 4) {
-			dspAlgorithm = new AdditiveSynthesis(sampleRate, blockSize, stressParameter);
-			Log.i("DSP", "AdditiveSynthesis with sine algorithm set.");
-		}
-		else if (alg == 5) {
-			dspAlgorithm = new AdditiveSynthesisLookupTableLinear(sampleRate, blockSize, stressParameter);
-			Log.i("DSP", "AdditiveSynthesis with sine algorithm set.");
-		}
-		else if (alg == 6) {
-			dspAlgorithm = new AdditiveSynthesisLookupTableCubic(sampleRate, blockSize, stressParameter);
-			Log.i("DSP", "AdditiveSynthesis with cubic algorithm set.");
+		dspAlgorithm = algorithms[algorithm];
+		dspAlgorithm.setBlockSize(blockSize);
+		Log.i("DSP", "Algorithm set: "+String.valueOf(dspAlgorithm)+".");
+		if (algorithm >= 3) {
+			StressAlgorithm stressAlg = (StressAlgorithm) dspAlgorithm;
+			stressAlg.setStressParameter(stressParameter);
 		}
 		setParams(parameter1);
 	}
@@ -269,7 +261,7 @@ public class DspThread extends Thread {
 		if (audioStream != null)
 			audioStream.setBlockSize(blockSize);
 	}
-	
+
 	/**
 	 * Set generic DSP parameters. These parameters are set either by
 	 * the user or by automated tests and can be used by DSP algorithms as
@@ -301,7 +293,7 @@ public class DspThread extends Thread {
 	 * @return The mean time of sample write to output.
 	 */
 	public double getSampleWriteMeanTime() {
-		if (callbackTicks != 0)
+		if (callbackTicks > 0)
 			return (double) sampleWriteTime / callbackTicks;
 		return 0;
 	}
@@ -310,7 +302,7 @@ public class DspThread extends Thread {
 	 * @return The mean DSP perform callback mean time.
 	 */
 	public double getDspPerformMeanTime() {
-		if (callbackTicks != 0)
+		if (callbackTicks > 0)
 			return (double) dspPerformTime / callbackTicks;
 		return 0;
 	}
@@ -319,7 +311,7 @@ public class DspThread extends Thread {
 	 * @return The DSP callback mean time.
 	 */
 	public double getDspCallbackMeanTime() {
-		if (callbackTicks != 0)
+		if (callbackTicks > 0)
 			return (double) dspCallbackTime / callbackTicks;
 		return 0;
 	}
@@ -343,14 +335,14 @@ public class DspThread extends Thread {
 	 */
 	public double getCallbackPeriodMeanTime() {
 		if (audioStream != null)
-			if (callbackTicks != 1)
+			if (callbackTicks > 1)
 				return (double) audioStream.getCallbackPeriod()
 						/ (callbackTicks - 1);
 		return 0;
 	}
 
 	/**
-     * @return The amount of blocks read from input.
+	 * @return The amount of blocks read from input.
 	 */
 	public long getReadTicks() {
 		if (audioStream != null)
@@ -378,25 +370,25 @@ public class DspThread extends Thread {
 	public double getElapsedTime() {
 		return (double) elapsedTime;
 	}
-	
+
 	/**
 	 * @return The current algorithm.
 	 */
 	public int getAlgorithm() {
 		return algorithm;
 	}
-	
+
 	/************************************************************************
 	 * DSP perform callback
 	 ***********************************************************************/
-	
+
 	/**
 	 * The DspPerformCallback is method called periodically at every DSP cycle.
 	 *   - convert PCM to doubles for processing and back.
 	 *   - Measure time used on computation.
 	 */
 	public class DspPerformCallback implements Runnable {
-		
+
 		/**
 		 * Control the processing of one block.
 		 */
@@ -413,7 +405,7 @@ public class DspThread extends Thread {
 			// call DSP perform for selected algorithm and account for time
 			time1 = SystemClock.uptimeMillis();
 			dspAlgorithm.perform(performBuffer); // <------------------------
-			if (callbackTicks % 1000 == 0)
+			if (callbackTicks % 100 == 0)
 				Log.i("DSP", "DSP is performing...");
 			dspPerformTime += (SystemClock.uptimeMillis() - time1);
 			// Convert from doubles to PCM shorts
@@ -424,10 +416,11 @@ public class DspThread extends Thread {
 			if (track != null) {
 				track.write(buffer, (jx++ * blockSize) % buffer.length, blockSize);
 			}
+
 			sampleWriteTime += (SystemClock.uptimeMillis() - time1);
 			elapsedTime = SystemClock.uptimeMillis() - startTime;
-
 			dspCallbackTime += SystemClock.uptimeMillis() - time0;
+
 			// Stop if reaches maximum of dsp cycles
 			if (callbackTicks == maxDspCycles) {
 				suspendDsp();
@@ -438,7 +431,7 @@ public class DspThread extends Thread {
 	/************************************************************************
 	 * DSP control
 	 ***********************************************************************/
-	
+
 	/**
 	 * This is called when the thread starts. Runs until stopDspThread() is
 	 * called.
@@ -449,18 +442,17 @@ public class DspThread extends Thread {
 		try {
 			while (true) {
 				if (isSuspended()) {
-					Log.i("DSP", "DSP thread is suspended.");
 					// wait for resume
 					try {
-						//Log.w("DSPThread", "sleeping...");
+						Log.w("DSP", "DSP is suspended.");
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						Log.e("ERROR", "Thread was Interrupted");
 					}
 				}
-					// read from audio source
+				// read from audio source
 				else if (isProcessing()) {
-					Log.i("DSP", "DSP thread starts processing.");
+					Log.i("DSP", "DSP thread starts processing with max dsp cycles.");
 					// turn on audio input and output.
 					setupAudioStream();
 					setupAudioTrack();
@@ -486,16 +478,16 @@ public class DspThread extends Thread {
 		}
 
 	}
-	
+
 	/**
 	 * Create a buffer to store audio samples.
 	 */
 	private void createPerformBuffer() {
-		 if (performBuffer == null || performBuffer.length != blockSize) {
-			 performBuffer = new double[blockSize]; 
-		 }
+		if (performBuffer == null || performBuffer.length != blockSize) {
+			performBuffer = new double[blockSize]; 
+		}
 	}
-	
+
 	/**
 	 * Stop and release audio input and output.
 	 */
@@ -513,7 +505,7 @@ public class DspThread extends Thread {
 			track = null;
 		}		
 	}
-	
+
 	/**
 	 * Stop the thread.
 	 * 
@@ -560,7 +552,7 @@ public class DspThread extends Thread {
 	public boolean isSuspended() {
 		return state == STATE_SUSPENDED;
 	}
-	
+
 	/**
 	 * @return Whether DPS is stopped.
 	 */

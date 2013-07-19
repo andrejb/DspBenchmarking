@@ -6,6 +6,12 @@ import android.media.MediaRecorder.AudioSource;
 import android.os.SystemClock;
 import android.util.Log;
 
+/**
+ * An audio stream that comes from a microphone.
+ * 
+ * @author andrejb
+ *
+ */
 public class MicStream extends AudioStream {
 
 	private int bufferSize = 0;
@@ -14,6 +20,14 @@ public class MicStream extends AudioStream {
 
 	AudioRecord recorder = null;
 	
+	/**
+	 * The constructor instantiates an AudioRecord instance with the given
+	 * configuration.
+	 * 
+	 * @param bufSize
+	 * @param sRate
+	 * @param blSize
+	 */
 	public MicStream(int bufSize, int sRate, int blSize) {
 		bufferSize = bufSize;
 		sampleRate = sRate;
@@ -39,16 +53,25 @@ public class MicStream extends AudioStream {
 
 	}
 	
+	/**
+	 * Get the size of the buffer to store samples from input.
+	 */
 	public int getBufferSize() {
 		return bufferSize;
 	}
 
+	/**
+	 * Schedule a periodic call for the DSP callback.
+	 */
 	public void scheduleDspCallback(long blockPeriodNanoseconds) {
 		recorder.setPositionNotificationPeriod(blockSize);
 		recorder.setRecordPositionUpdateListener(microphoneDspCallback);
 		recorder.startRecording();
 	}
 
+	/**
+	 * This is just a placeholder because such a method has to be implemented.
+	 */
 	public int blocks() {
 		// TODO Auto-generated method stub
 		return 0;

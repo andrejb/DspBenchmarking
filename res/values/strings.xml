@@ -64,7 +64,7 @@
         <string name="audio_source">Audio source:</string>
         <string name="dsp_benchmarking">Executando testes</string>
         <string name="start">start</string>
-        <string name="loopback">"Loopback:  "</string>
+        <string name="loopback">&quot;Loopback  &quot;</string>
         <string name="dash">-</string>
         <string name="stress_test">Stress Test</string>
         <string name="filter_size">"Filter size: "</string>
@@ -79,4 +79,6 @@
     	<string name="airplane_mode">Coloque o dispositivo no Modo Avião para liberar os testes.</string>
     	<string name="welcome">Bem vindo/a ao DSP Benchmarking!</string>
     	<string name="instructions">\nMuito obrigado por aceitar ajudar este trabalho de mestrado e submeter seu aparelho com Android a uma bateria de testes de processamento de áudio em tempo real.\n\nO código fonte deste aplicativo e informações sobre como verificar a autenticidade deste pacote estão disponíveis no seguinte endereço:\n\nhttp://www.ime.usp.br/~ajb/wiki/android\n\n</string>
+    	<string name="current_test">&quot;Teste atual:  &quot;</string>
+    	<string name="progress">Progresso:</string>
 </resources>

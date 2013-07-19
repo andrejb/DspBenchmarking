@@ -2,7 +2,6 @@ package br.usp.ime.dspbenchmarking;
 
 import br.usp.ime.dspbenchmarking.activities.AllTestsActivity;
 import br.usp.ime.dspbenchmarking.activities.LiveActivity;
-import br.usp.ime.dspbenchmarking.activities.StressActivity;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -15,13 +14,27 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+
+/**
+ * This is the main activity, called when the program starts. It basically
+ * lets the user to choose from using the DSP facilities in an example
+ * activity (which I called "LiveActivity") or running automated tests that
+ * will send a report through email when they are finished.
+ * 
+ * @author andrejb
+ *
+ */
 public class DspBenchmarking extends Activity {
 	
 	
-	private String results;
+	// Views
 	private Button buttonAllTestsActivity;
 	private TextView textAirplaneMode;
 	
+	// Airplane mode is interesting so tests are not interrupted by a call.
+	// The downside is that it may become more difficult to users to run
+	// the test until the end and to send the results (because of lack of
+	// connection -- i'm not sure about this argument).
 	private static final boolean BYPASS_AIRPLANE_MODE = true; 
 	
 	
@@ -31,7 +44,7 @@ public class DspBenchmarking extends Activity {
      *   - Hide unwanted buttons (benchmark, stress).
      * Allows for calling one of two activities:
      *   - LiveActivity.
-     *   - BenchmarkActivity.
+     *   - AllTestsActivity.
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -88,34 +101,6 @@ public class DspBenchmarking extends Activity {
     	DspBenchmarking.this.startActivity(tests_intent);
     }
     
-    /**
-     * Calls subsequent test activities and send results in the end.
-     */
-    protected void onActivityResult (int requestCode, int resultCode, Intent data) {
-    	if (requestCode == 1 && resultCode == RESULT_OK) {
-    		results = data.getStringExtra("results");
-    		Intent i = new Intent(DspBenchmarking.this, StressActivity.class);
-    		DspBenchmarking.this.startActivityForResult(i, 2);
-    	} else if (requestCode == 2 && resultCode == RESULT_OK) {
-    		results += data.getStringExtra("results");
-    		sendResults("Test results");
-    	}
-    }
-    
-    /**
-     * Send test results by email.
-     * @param title
-     */
-	private void sendResults(String title) {
-		Intent sendIntent = new Intent(Intent.ACTION_SEND);
-		sendIntent.putExtra(Intent.EXTRA_TEXT, results);
-		String[] to = { "compmus.ime@gmail.com" };
-		sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
-		sendIntent.putExtra(Intent.EXTRA_SUBJECT, "[dsp-benchmarking] "+title);
-		sendIntent.setType("message/rfc822");
-		startActivity(Intent.createChooser(sendIntent, "Send results"));	
-	}
-	
 	/**
 	* Gets the state of Airplane Mode.
 	* 

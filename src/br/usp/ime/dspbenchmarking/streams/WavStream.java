@@ -262,7 +262,11 @@ public class WavStream extends AudioStream {
 				readTicks++;
 				// read from WAV buffer.
 				times1 = SystemClock.uptimeMillis();
-				read(buffer, block * blockSize, blockSize);
+				try {
+					read(buffer, block * blockSize, blockSize);
+				} finally {
+
+				}
 				times2 = SystemClock.uptimeMillis();
 				sampleReadTime += (times2 - times1);
 				// if (elapsedTime > (100000.0 * (float) blockSize /

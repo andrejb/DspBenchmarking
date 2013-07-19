@@ -9,12 +9,12 @@ package br.usp.ime.dspbenchmarking.algorithms;
  * @author andrejb
  *
  */
-public class AdditiveSynthesis extends StressAlgorithm {
+public class AdditiveSynthesisSine extends StressAlgorithm {
 
 	private static final double TWOPI = 2.0 * Math.PI;
 	private int lastInd;  // Used to preserve phase.
 	
-	public AdditiveSynthesis(int sRate, int bSize, int stressParam) {
+	public AdditiveSynthesisSine(int sRate, int bSize, int stressParam) {
 		super(sRate, bSize);
 		setStressParameter(stressParam);
 		lastInd = 0;

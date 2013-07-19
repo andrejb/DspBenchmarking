@@ -20,9 +20,9 @@ public abstract class AdditiveSynthesisLookupTable extends StressAlgorithm {
 	
 	public AdditiveSynthesisLookupTable(int sRate, int bSize, int stressParam) {
 		super(sRate, bSize);
-		setStressParameter(stressParam);
 		// initialize the sine table
 		sine = new float[SINETABLE_SIZE];
+		setStressParameter(stressParam);
 		for (int i=0; i<SINETABLE_SIZE; i++)
 			sine[i] = (float) Math.sin(TWOPI * i / SINETABLE_SIZE);
 		// calculate the time between two adjacent samples

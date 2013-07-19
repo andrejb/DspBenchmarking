@@ -17,6 +17,15 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
 
+/**
+ * The live activity allows for use of the DSP facilities during a live
+ * performance. In fact, it can be seen more as an "examples" screen with
+ * the implemented algorithms and possibility of switching between distinct
+ * block sizes, audio inputs and algorithms. 
+ * 
+ * @author andrejb
+ *
+ */
 public class LiveActivity extends DspActivity {
 	
 	//private static final String TAG = "DspActivity";
@@ -38,9 +47,11 @@ public class LiveActivity extends DspActivity {
 
 
 
-	/************************************************************************
-	 * onCreate Called when the activity is first created.
-	 ***********************************************************************/
+	/**
+	 * Called when the activity is first created. Setup the screen with options
+	 * for modifying the DSP parameters (block size, algorithm, audio input,
+	 * etc).
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		// Set the view
@@ -88,6 +99,9 @@ public class LiveActivity extends DspActivity {
 				
 	}
 	
+	/**
+	 * Stop DSP and finish the activity when "back" is pressed.
+	 */
 	public void onBackPressed() {
 		if (toggleDSPView.isChecked()) {
 			toggleDSPView.setChecked(false);
@@ -142,7 +156,7 @@ public class LiveActivity extends DspActivity {
 
 	
 	/************************************************************************
-	 * Listener for algorithm change.
+	 * Listeners for algorithm change.
 	 ***********************************************************************/
 	private class AlgorithmListener implements OnItemSelectedListener {
 

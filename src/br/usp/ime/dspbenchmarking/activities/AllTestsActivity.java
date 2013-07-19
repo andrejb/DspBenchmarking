@@ -2,6 +2,8 @@ package br.usp.ime.dspbenchmarking.activities;
 
 import java.io.IOException;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -39,7 +41,7 @@ import br.usp.ime.dspbenchmarking.threads.DspThread;
  * @author andrejb
  *
  */
-public class AllTestsActivity extends DspActivity {
+public class AllTestsActivity extends Activity {
 
 	// Views
 	protected ToggleButton toggleTestsButton = null;
@@ -66,7 +68,7 @@ public class AllTestsActivity extends DspActivity {
 
 	// Block size limits
 	static final int START_BLOCK_SIZE = (int) Math.pow(2,4);
-	static final int END_BLOCK_SIZE = (int) Math.pow(2,12);
+	static final int END_BLOCK_SIZE = (int) Math.pow(2,13);
 
 	// Time keeping
 	private long lastTotalTime = 0;
@@ -84,9 +86,36 @@ public class AllTestsActivity extends DspActivity {
 	private final String MESSAGE_STRESS_PARAM = "stress-param";
 
 	// Message handler lock
+	private TestControlThread mt;
 	static class Lock extends Object {
 	}
 	static public Lock messageHandlerLock = new Lock();
+
+	public class Barrier
+	{
+		public synchronized void block() throws InterruptedException
+		{
+			Log.i("BARRIER", "Blocking...");
+			wait();
+			Log.i("BARRIER", "Released.");
+		}
+
+		public synchronized void release() throws InterruptedException
+		{
+			Log.i("BARRIER", "Notifying.");
+			notify();
+		}
+
+		public synchronized void releaseAll() throws InterruptedException
+		{
+			Log.i("BARRIER", "Notifying all.");
+			notifyAll();
+		}
+
+	}
+	
+	protected DspThread dt;
+	protected long totalTime;
 
 	/*************************************************************************
 	 * Constructor
@@ -104,6 +133,18 @@ public class AllTestsActivity extends DspActivity {
 		setContentView(R.layout.tests);
 		super.onCreate(savedInstanceState);
 
+		// Hide everything we don't need
+		/*cpuUsageBar.setVisibility(View.GONE);
+		sampleReadTimeView.setVisibility(View.GONE);
+		sampleWriteTimeView.setVisibility(View.GONE);
+		dspCallbackTimeView.setVisibility(View.GONE);
+		dspCycleTimeBar.setVisibility(View.GONE);
+		dspPeriodView.setVisibility(View.GONE);
+		dspCyclesView.setVisibility(View.GONE);
+		readCyclesView.setVisibility(View.GONE);
+		callbackPeriodView.setVisibility(View.GONE);
+		elapsedTimeView.setVisibility(View.GONE);*/
+		
 		// Find toggle button
 		toggleTestsButton = (ToggleButton) findViewById(R.id.toggleTests);
 		toggleTestsButton.setTextOff("start");
@@ -127,7 +168,7 @@ public class AllTestsActivity extends DspActivity {
 		workingBar.setVisibility(ProgressBar.VISIBLE);
 
 		// Start tests
-		Log.i("Tests", "Starting control thread...");
+		Log.i("DSP TESTS", "Starting control thread...");
 		setupTests();
 		startControlThread();
 	}
@@ -144,7 +185,7 @@ public class AllTestsActivity extends DspActivity {
 	 *   - start the DSP thread. 
 	 */
 	protected void setupTests() {
-		Log.i("Tests", "Setting up the DSP thread...");
+		Log.i("DSP TESTS", "Setting up the DSP thread...");
 		dt = new DspThread();
 		try {
 			inputStream = getResources().openRawResourceFd(
@@ -171,19 +212,19 @@ public class AllTestsActivity extends DspActivity {
 	protected void updateScreenInfo() {
 		if (algorithm != lastAlg) {
 			if (algorithm == 0)
-				algorithmName.setText("Loopback:  ");
+				algorithmName.setText("Loopback  ");
 			else if (algorithm == 1)
-				algorithmName.setText("Reverb:  ");
+				algorithmName.setText("Reverb  ");
 			else if (algorithm == 2)
-				algorithmName.setText("FFT:  ");
+				algorithmName.setText("FFT  ");
 			else if (algorithm == 3)
-				algorithmName.setText("Convolution:  ");
+				algorithmName.setText("Convolution  ");
 			else if (algorithm == 4)
-				algorithmName.setText("Additive Synthesis (sine):  ");
+				algorithmName.setText("Additive Synthesis (sine)  ");
 			else if (algorithm == 5)
-				algorithmName.setText("Additive Synthesis (linear):  ");
+				algorithmName.setText("Additive Synthesis (linear)  ");
 			else if (algorithm == 6)
-				algorithmName.setText("Additive Synthesis (cubic):  ");
+				algorithmName.setText("Additive Synthesis (cubic)  ");
 			lastAlg = algorithm;
 		}
 		blockSizeView.setText(String.valueOf(blockSize));
@@ -251,7 +292,7 @@ public class AllTestsActivity extends DspActivity {
 	 * Stops and releases the DSP thread.
 	 */
 	protected void releaseDspThread() {
-		Log.i("Tests", "Releasing DSP thread...");
+		Log.i("DSP TESTS", "Releasing DSP thread...");
 		dt.stopDspThread();
 		dt = null;
 	}
@@ -264,7 +305,7 @@ public class AllTestsActivity extends DspActivity {
 	 * Start the test control thread.
 	 */
 	protected void startControlThread() {
-		TestControlThread mt = new TestControlThread(mHandler);
+		mt = new TestControlThread(mHandler);
 		mt.start();
 	}
 
@@ -272,42 +313,62 @@ public class AllTestsActivity extends DspActivity {
 	 * Handle message from main thread. This handler receives messages from
 	 * the TestControlThread and control test launch and screen update.
 	 */
+	@SuppressLint("HandlerLeak")
 	final Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			String action = msg.getData().getString("action");
+			String action = msg.getData().getString(MESSAGE_ACTION);
 
+			Log.i("MSG HANDLER", "Received control message, will now act...");
 			synchronized (messageHandlerLock) {
+				Log.i("MSG HANDLER", "Acquired lock.");
 				// launch a new test
 				if (action.equals(MESSAGE_LAUNCH_TEST)) {
+					Log.i("MSG HANDLER", "Launching new test.");
 					algorithm = msg.getData().getInt(MESSAGE_ALGORITHM);
 					blockSize = msg.getData().getInt(MESSAGE_BLOCK_SIZE);
 					maxDspCycles = msg.getData().getInt(MESSAGE_MAX_DSP_CYCLES);
 					stressParameter = msg.getData().getInt(MESSAGE_STRESS_PARAM);
 					updateScreenInfo();
 					launchTest();
+					Log.i("MSG HANDLER", "Finished launching new test.");
 				}
 
 				// release a test
 				else if (action.equals(MESSAGE_RELEASE_TEST)) {
+					Log.i("MSG HANDLER", "Releasing test.");
 					releaseTest();
+					Log.i("MSG HANDLER", "Finished releasing test.");
 				}
 
 				// finish all tests
 				else if (action.equals(MESSAGE_FINISH_TESTS)) {
+					Log.i("MSG HANDLER", "Finishing tests.");
 					finishTests();
 					sendResults("Test results");
+					Log.i("MSG HANDLER", "Finished finishing tests.");
 				}
 
 				// store results
 				else if (action.equals(MESSAGE_STORE_RESULTS)) {
+					Log.i("MSG HANDLER", "Storing results.");
 					storeResults(msg.getData().getInt(MESSAGE_STRESS_PARAM));
+					Log.i("MSG HANDLER", "Finishing storing results.");
 				}
+				// Release the lock.
+				Log.i("MSG HANDLER", "Releasing lock.");
+				Message reply = mt.cHandler.obtainMessage();
+				mt.cHandler.sendMessage(reply);
+
 			}
 		}
 	};
 
 
+
+	/*************************************************************************
+	 * Test control thread
+	 ************************************************************************/
 
 	/**
 	 * Store results from a test.
@@ -330,6 +391,8 @@ public class AllTestsActivity extends DspActivity {
 
 		private Handler mHandler;
 
+		private boolean messageHandlerTaskDone;
+
 		/**
 		 * Initialize the thread by storing the message handler.
 		 * @param handler
@@ -337,6 +400,18 @@ public class AllTestsActivity extends DspActivity {
 		public TestControlThread(Handler handler) {
 			mHandler = handler;
 		}
+
+		/**
+		 * Handles a message to set the message handler task as done.
+		 */
+		@SuppressLint("HandlerLeak")
+		final Handler cHandler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				Log.i("TEST CONTROL", "Message was handled.");
+				messageHandlerTaskDone = true;
+			}
+		};
 
 		/**
 		 * Send a control message to main thread using the message handler.
@@ -350,7 +425,7 @@ public class AllTestsActivity extends DspActivity {
 		 */
 		private void sendMessage(String action, int bSize, int alg,
 				int mdCycles, long totalTime, int stressParam) {
-			String logString = "Sending control message:\n  action: "+action+"\n";
+			String logString = "  action: "+action+"\n";
 			Message msg = mHandler.obtainMessage();
 			Bundle b = new Bundle();
 			b.putString(MESSAGE_ACTION, action);
@@ -375,8 +450,20 @@ public class AllTestsActivity extends DspActivity {
 				logString += "  stress param: "+stressParam+"\n";
 			}
 			msg.setData(b);
-			Log.i("TEST", "Sending control message: "+logString);
+
+			// Send the message and wait for it to be handled.
+			Log.i("TEST CONTROL", "Sending control message: \n"+logString);
+			messageHandlerTaskDone = false;
 			mHandler.sendMessage(msg);
+			while (!messageHandlerTaskDone)
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					Log.e("ERROR", "Thread was Interrupted");
+				}
+
+			// Block until the message has been handled.
+			Log.i("TEST CONTROL", "Message was handled.");
 		}
 
 		/**
@@ -397,53 +484,55 @@ public class AllTestsActivity extends DspActivity {
 			 ************************************************************/
 			int startAlgorithm = 0; // Loopback
 			int endAlgorithm = 2; // FFT
-			// TODO: change back
 
 			// Iterate through algorithms
 			for (algorithm = startAlgorithm; algorithm <= endAlgorithm; algorithm++) {
-				Log.i("TESTS", "Starting test with algorithm "+algorithm+".");
+				Log.i("TESTS PHASE 1", "Starting test with algorithm "+algorithm+".");
 				// Iterate through power of 2 blocks
 				for (blockSize = START_BLOCK_SIZE; blockSize <= END_BLOCK_SIZE; blockSize *= 2) {	
-					Log.i("TESTS", "Starting test with block size" + blockSize+".");
+					Log.i("TESTS PHASE 1", "Starting test with block size " + blockSize+".");
 
 					// limit number of DSP cycles, depending on the block
 					// size. This is so that tests do not run for a
 					// extremely large period of time.
-					if (blockSize <= 64)
+					/*if (blockSize <= 64)
 						maxDspCycles = 5000;
 					else if (blockSize <= 512)
 						maxDspCycles = 1000;
 					else if (blockSize <= 2048)
 						maxDspCycles = 500;
 					else
-						maxDspCycles = 100;
+						maxDspCycles = 100;*/
+
 					maxDspCycles = 100;
 
 					// Send message for starting a new test
 					sendMessage(MESSAGE_LAUNCH_TEST, blockSize, algorithm, maxDspCycles, -1, -1);
 
 					// wait for test to start
-					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-						Log.e("ERROR", "Thread was Interrupted");
-					}
+					//try {
+					//	Log.i("TESTS PHASE 1", "Waiting for test to start.");
+					//	Thread.sleep(2000);
+					//} catch (InterruptedException e) {
+					//	Log.e("ERROR", "Thread was Interrupted");
+					//}
 
-					Log.i("DSP TEST", "init block size = " + blockSize);
+					Log.i("TESTS PHASE 1", "Wait for test to end...");
 					// Wait for tests to end
 					while (!dt.isSuspended())
 						try {
-							//Log.w("rodando", "arui");
+							Log.i("TESTS PHASE 1", "  stil waiting...");
 							Thread.sleep(1000);
 						} catch (InterruptedException e) {
 							Log.e("ERROR", "Thread was Interrupted");
 						}
+					Log.i("TESTS PHASE 1", "Test ended.");
 
 					// Sends message for releasing the test
 					sendMessage(MESSAGE_RELEASE_TEST, -1, -1, -1, -1, -1);
 
 					try {
-						Thread.sleep(2000);
+						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						Log.e("ERROR", "Thread was Interrupted");
 					}
@@ -459,7 +548,7 @@ public class AllTestsActivity extends DspActivity {
 							SystemClock.uptimeMillis() - startTime, -1);
 
 					// increase status bar
-					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/3)/2;
+					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/7);
 					progressBar
 					.setProgress((int)((actualProgress / totalProgress) * 100));
 				}
@@ -472,7 +561,6 @@ public class AllTestsActivity extends DspActivity {
 
 			startAlgorithm = 3;	// Convolution
 			endAlgorithm = 6;	// Additive Synthesis
-			// TODO: change back
 
 			for (algorithm = startAlgorithm; algorithm <= endAlgorithm; algorithm++) {
 				Log.i("TESTS PHASE 2", "Starting with algorithm "+algorithm+".");
@@ -503,7 +591,7 @@ public class AllTestsActivity extends DspActivity {
 							stressParam = (int) (m + ((double) (M-m) / 2));
 
 						// calc max dsp cycles
-						if (blockSize <= 64)
+						/*if (blockSize <= 64)
 							maxDspCycles = 5000;
 						else if (blockSize <= 512) {
 							int max_size = 1000;
@@ -531,8 +619,10 @@ public class AllTestsActivity extends DspActivity {
 								maxDspCycles = max_size/2;
 							else
 								maxDspCycles = max_size/2;
-						}
+						}*/
 						maxDspCycles = 100;
+						if (blockSize >= 2048)
+							maxDspCycles = 50;
 
 
 						//===============================================
@@ -542,15 +632,14 @@ public class AllTestsActivity extends DspActivity {
 						sendMessage(MESSAGE_LAUNCH_TEST, blockSize, algorithm, maxDspCycles, -1, stressParam);
 
 						// wait for test to start
-						try {
-							Thread.sleep(2000);
-						} catch (InterruptedException e) {
-							Log.e("ERROR", "Thread was Interrupted");
-						}
+						//try {
+						//	Thread.sleep(2000);
+						//} catch (InterruptedException e) {
+						//	Log.e("ERROR", "Thread was Interrupted");
+						//}
 
 						// wait for test to end
 						while (!dt.isSuspended()) {
-							// TODO: update screen?
 							if (dt.getDspCallbackMeanTime() > dt.getBlockPeriod() && dt.getCallbackTicks() > 100) {
 								dt.suspendDsp();
 							}
@@ -580,11 +669,11 @@ public class AllTestsActivity extends DspActivity {
 						//===============================================
 						// release test
 						sendMessage(MESSAGE_RELEASE_TEST, -1, -1, -1, SystemClock.uptimeMillis() - startTime, -1);
-						try {
-							Thread.sleep(2000);
-						} catch (InterruptedException e) {
-							Log.e("ERROR", "Thread was Interrupted");
-						}
+						//try {
+						//	Thread.sleep(2000);
+						//} catch (InterruptedException e) {
+						//	Log.e("ERROR", "Thread was Interrupted");
+						//}
 						//System.gc();
 						// wait for garbage collector
 						//try {
@@ -596,10 +685,9 @@ public class AllTestsActivity extends DspActivity {
 
 					// store results
 					sendMessage(MESSAGE_STORE_RESULTS, -1, -1, -1, SystemClock.uptimeMillis() - startTime, m);
-					
-					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/3)/2;
-					progressBar
-					.setProgress(50 + ((int)((actualProgress / totalProgress) * 100)));
+
+					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/7);
+					progressBar.setProgress(((int)((actualProgress / totalProgress) * 100)));
 				}
 
 			}

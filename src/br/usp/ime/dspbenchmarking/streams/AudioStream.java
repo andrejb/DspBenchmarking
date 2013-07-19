@@ -37,22 +37,38 @@ public abstract class AudioStream {
 	public abstract int getMinBufferSize();
 	
 	
+	/**
+	 * Set the block size for the signal processing of the stream.
+	 * @param bSize
+	 */
 	public void setBlockSize(int bSize) {
 		blockSize = bSize;
 	}
 
+	/**
+	 * @return The sum of the periods of callback calls.
+	 */
 	public long getCallbackPeriod() {
 		return callbackPeriod;
 	}
 	
+	/**
+	 * @return The amount of times blocks were read from input.
+	 */
 	public long getReadTicks() {
 		return readTicks;
 	}
 	
+	/**
+	 * @return The sum of the time taken to read from input.
+	 */
 	public long getSampleReadTime() {
 		return sampleReadTime;
 	}
 	
+	/**
+	 * Reset the audio stream parameters.
+	 */
 	public void reset() {
 		callbackPeriod = 0;
 		readTicks = 0;
@@ -60,14 +76,14 @@ public abstract class AudioStream {
 	}
 	
 	/**
-	 * Set the callback to work over samples.
+	 * Define the callback that works over samples.
 	 */
 	public void setDspCallback(DspPerformCallback callback) {
 		dspCallback = callback;
 	}
 
 	/**
-	 * 
+	 * Create a new buffer to store input samples. 
 	 */
 	public short[] createBuffer() {
 		return new short[getBufferSize()];
