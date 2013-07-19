@@ -9,7 +9,7 @@ package br.usp.ime.dspbenchmarking.algorithms;
  */
 public class FftAlgorithm extends DspAlgorithm {
 
-	private FFT fft;
+	private FFT fft = null;
 	
 	/*************************************************************************
 	 * Constructor.
@@ -17,7 +17,6 @@ public class FftAlgorithm extends DspAlgorithm {
 	
 	public FftAlgorithm(int sRate, int bSize) {
 		super(sRate, bSize);
-		fft = new FFT((int) (Math.log10(getBlockSize()) / Math.log10(2)));
 	}
 	
 	/*************************************************************************
@@ -40,7 +39,10 @@ public class FftAlgorithm extends DspAlgorithm {
 	 */
 	public void setBlockSize(int bSize) {
 		super.setBlockSize(bSize);
-		fft.setBits((int) (Math.log10(getBlockSize()) / Math.log10(2)));
+		if (fft == null)
+			fft = new FFT((int) (Math.log10(bSize) / Math.log10(2)));
+		else
+			fft.setBits((int) (Math.log10(getBlockSize()) / Math.log10(2)));
 	}
 
 }

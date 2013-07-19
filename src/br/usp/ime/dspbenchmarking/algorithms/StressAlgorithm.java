@@ -15,7 +15,7 @@ public abstract class StressAlgorithm extends DspAlgorithm {
 	 * This parameter should be used by stress algorithms to control the size
 	 * or computational intensity of their work.
 	 */
-	protected int stressParameter;
+	protected int stressParameter = 1;
 	
 	/**
 	 * The constructor just saves the sample rate and block size.
@@ -34,6 +34,8 @@ public abstract class StressAlgorithm extends DspAlgorithm {
 	 */
 	public void setStressParameter(int stressParam) {
 		stressParameter = stressParam;
+		if (stressParameter == 0)
+			stressParameter = 1;
 	}
 	
 }

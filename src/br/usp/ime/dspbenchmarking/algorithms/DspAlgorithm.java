@@ -8,6 +8,24 @@ package br.usp.ime.dspbenchmarking.algorithms;
  * containing the signal samples and actually modifies/analyses/synthesises
  * the signal.
  * 
+ * To add a new DSP algorithm, do the following:
+ * 
+ *   1. Create a class extending DspAlgorithm.
+ *
+ *   2. Write the perform method for the new algorithm inside the new class,
+ *      also adding whatever is needed for the algorithm to work.
+ *
+ *   3. Instantiate the new algorithm and add it to the `algorithms` vector in
+ *       DspThread's constructor.  
+ *
+ *   4. If you want the new algorithm to be available to the user on the GUI,
+ *      add the new algorithm name to the `algorithm_array` array in
+ *      `res/values/strings.xml` (that array populates the pulldown menu on
+ *      the GUI).
+ *
+ *   5. Include the new algorithm in the tests by modifying AllTestsAlgorithm.
+ *
+ * 
  * @author andrejb
  *
  */
@@ -31,7 +49,7 @@ public abstract class DspAlgorithm {
 	 */
 	public DspAlgorithm(int sRate, int bSize) {
 		sampleRate = sRate;
-		blockSize = bSize;
+		setBlockSize(bSize);
 	}
 
 	/*************************************************************************

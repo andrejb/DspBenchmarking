@@ -3,6 +3,7 @@ package br.usp.ime.dspbenchmarking.threads;
 import java.io.IOException;
 import java.io.InputStream;
 
+import br.usp.ime.dspbenchmarking.algorithms.AdditiveSynthesisLookupTableTruncated;
 import br.usp.ime.dspbenchmarking.algorithms.AdditiveSynthesisSine;
 import br.usp.ime.dspbenchmarking.algorithms.AdditiveSynthesisLookupTableCubic;
 import br.usp.ime.dspbenchmarking.algorithms.AdditiveSynthesisLookupTableLinear;
@@ -45,6 +46,7 @@ public class DspThread extends Thread {
 	private int algorithm;
 	private double parameter1;
 	private int maxDspCycles;  // 0 means infinite
+	private final int DEFAULT_BLOCK_SIZE = 64;
 
 	// Audio source variables
 	static public final int AUDIO_SOURCE_MIC = 0;
@@ -80,7 +82,7 @@ public class DspThread extends Thread {
 	private int state = STATE_STOPPED;
 
 	// DSP algorithms
-	private DspAlgorithm[] algorithms = new DspAlgorithm[7];
+	private DspAlgorithm[] algorithms;
 
 
 	/************************************************************************
@@ -97,13 +99,15 @@ public class DspThread extends Thread {
 		.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
 		// Instantiate algorithms
-		algorithms[0] = new Loopback(44100, 64);
-		algorithms[1] = new Reverb(44100, 64);
-		algorithms[2] = new FftAlgorithm(44100, 64);
-		algorithms[3] = new Convolution(44100, 64, 1);
-		algorithms[4] = new AdditiveSynthesisSine(44100, 64, 1);
-		algorithms[5] = new AdditiveSynthesisLookupTableLinear(44100, 64, 1);
-		algorithms[6] = new AdditiveSynthesisLookupTableCubic(44100, 64, 1);
+		algorithms = new DspAlgorithm[8];
+		algorithms[0] = new Loopback(sampleRate, DEFAULT_BLOCK_SIZE);
+		algorithms[1] = new Reverb(sampleRate, DEFAULT_BLOCK_SIZE);
+		algorithms[2] = new FftAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE);
+		algorithms[3] = new Convolution(sampleRate, DEFAULT_BLOCK_SIZE, 1);
+		algorithms[4] = new AdditiveSynthesisSine(sampleRate, DEFAULT_BLOCK_SIZE, 1);
+		algorithms[5] = new AdditiveSynthesisLookupTableLinear(sampleRate, DEFAULT_BLOCK_SIZE, 1);
+		algorithms[6] = new AdditiveSynthesisLookupTableCubic(sampleRate, DEFAULT_BLOCK_SIZE, 1);
+		algorithms[7] = new AdditiveSynthesisLookupTableTruncated(sampleRate, DEFAULT_BLOCK_SIZE, 1);
 
 		// set default DSP values
 		setAlgorithm(0);  // Loopback

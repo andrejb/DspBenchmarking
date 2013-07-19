@@ -113,7 +113,7 @@ public class AllTestsActivity extends Activity {
 		}
 
 	}
-	
+
 	protected DspThread dt;
 	protected long totalTime;
 
@@ -144,7 +144,7 @@ public class AllTestsActivity extends Activity {
 		readCyclesView.setVisibility(View.GONE);
 		callbackPeriodView.setVisibility(View.GONE);
 		elapsedTimeView.setVisibility(View.GONE);*/
-		
+
 		// Find toggle button
 		toggleTestsButton = (ToggleButton) findViewById(R.id.toggleTests);
 		toggleTestsButton.setTextOff("start");
@@ -262,8 +262,20 @@ public class AllTestsActivity extends Activity {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		releaseDspThread();
+		
+		// Stop test control thread.
+		mt.stopControlThread();
+		// Suspend DSP
+		dt.suspendDsp();
 
+		// wait for eventual DSP thread pollings to occur before releasing the DSP thread.
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			Log.e("ERROR", "Thread was Interrupted");
+		}
+		releaseDspThread();
+		
 		// Reconfigure screen
 		workingBar.setVisibility(ProgressBar.INVISIBLE);
 		toggleTestsButton.setTextOff("Testes finalizados.");
@@ -389,6 +401,8 @@ public class AllTestsActivity extends Activity {
 	 */
 	protected class TestControlThread extends Thread {
 
+		private boolean controlThreadRunning = false;
+
 		private Handler mHandler;
 
 		private boolean messageHandlerTaskDone;
@@ -399,6 +413,13 @@ public class AllTestsActivity extends Activity {
 		 */
 		public TestControlThread(Handler handler) {
 			mHandler = handler;
+		}
+
+		/**
+		 * Set a variable to stop the control thread.
+		 */
+		public void stopControlThread() {
+			controlThreadRunning = false;
 		}
 
 		/**
@@ -476,6 +497,9 @@ public class AllTestsActivity extends Activity {
 		@Override
 		public void run() {
 
+			// Mark thread as running.
+			controlThreadRunning = true;
+
 			// keep track of time
 			long startTime = SystemClock.uptimeMillis();
 
@@ -507,7 +531,8 @@ public class AllTestsActivity extends Activity {
 					maxDspCycles = 100;
 
 					// Send message for starting a new test
-					sendMessage(MESSAGE_LAUNCH_TEST, blockSize, algorithm, maxDspCycles, -1, -1);
+					if (controlThreadRunning)
+						sendMessage(MESSAGE_LAUNCH_TEST, blockSize, algorithm, maxDspCycles, -1, -1);
 
 					// wait for test to start
 					//try {
@@ -519,7 +544,7 @@ public class AllTestsActivity extends Activity {
 
 					Log.i("TESTS PHASE 1", "Wait for test to end...");
 					// Wait for tests to end
-					while (!dt.isSuspended())
+					while (controlThreadRunning && !dt.isSuspended())
 						try {
 							Log.i("TESTS PHASE 1", "  stil waiting...");
 							Thread.sleep(1000);
@@ -529,7 +554,8 @@ public class AllTestsActivity extends Activity {
 					Log.i("TESTS PHASE 1", "Test ended.");
 
 					// Sends message for releasing the test
-					sendMessage(MESSAGE_RELEASE_TEST, -1, -1, -1, -1, -1);
+					if (controlThreadRunning)
+						sendMessage(MESSAGE_RELEASE_TEST, -1, -1, -1, -1, -1);
 
 					try {
 						Thread.sleep(1000);
@@ -544,14 +570,23 @@ public class AllTestsActivity extends Activity {
 					//	Log.e("ERROR", "Thread was Interrupted");
 					//}
 
-					sendMessage(MESSAGE_STORE_RESULTS, -1, algorithm, -1,
-							SystemClock.uptimeMillis() - startTime, -1);
+					if (controlThreadRunning)
+						sendMessage(MESSAGE_STORE_RESULTS, -1, algorithm, -1,
+								SystemClock.uptimeMillis() - startTime, -1);
 
 					// increase status bar
 					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/7);
 					progressBar
 					.setProgress((int)((actualProgress / totalProgress) * 100));
+					
+					// break if thread was interrupted.
+					if (!controlThreadRunning)
+						break;
 				}
+				
+				// break if thread was interrupted.
+				if (!controlThreadRunning)
+					break;
 			}
 
 
@@ -560,7 +595,7 @@ public class AllTestsActivity extends Activity {
 			 ************************************************************/
 
 			startAlgorithm = 3;	// Convolution
-			endAlgorithm = 6;	// Additive Synthesis
+			endAlgorithm = 7;	// Additive Synthesis (truncated)
 
 			for (algorithm = startAlgorithm; algorithm <= endAlgorithm; algorithm++) {
 				Log.i("TESTS PHASE 2", "Starting with algorithm "+algorithm+".");
@@ -621,15 +656,16 @@ public class AllTestsActivity extends Activity {
 								maxDspCycles = max_size/2;
 						}*/
 						maxDspCycles = 100;
-						if (blockSize >= 2048)
-							maxDspCycles = 50;
+						//if (blockSize >= 2048)
+						//	maxDspCycles = 50;
 
 
 						//===============================================
 						// run test
 						//===============================================
 						// launch test
-						sendMessage(MESSAGE_LAUNCH_TEST, blockSize, algorithm, maxDspCycles, -1, stressParam);
+						if (controlThreadRunning)
+							sendMessage(MESSAGE_LAUNCH_TEST, blockSize, algorithm, maxDspCycles, -1, stressParam);
 
 						// wait for test to start
 						//try {
@@ -639,7 +675,7 @@ public class AllTestsActivity extends Activity {
 						//}
 
 						// wait for test to end
-						while (!dt.isSuspended()) {
+						while (controlThreadRunning && !dt.isSuspended()) {
 							if (dt.getDspCallbackMeanTime() > dt.getBlockPeriod() && dt.getCallbackTicks() > 100) {
 								dt.suspendDsp();
 							}
@@ -653,7 +689,7 @@ public class AllTestsActivity extends Activity {
 						//===============================================
 						// get performance results
 						//===============================================
-						if (dt.getDspCallbackMeanTime() < dt.getBlockPeriod()) {
+						if (controlThreadRunning && dt.getDspCallbackMeanTime() < dt.getBlockPeriod()) {
 							m = stressParam;
 							Log.i("TESTS PHASE 2", "Stress parameter "+m+" is feasible!");
 						}
@@ -668,7 +704,8 @@ public class AllTestsActivity extends Activity {
 						// clean trash before running next test
 						//===============================================
 						// release test
-						sendMessage(MESSAGE_RELEASE_TEST, -1, -1, -1, SystemClock.uptimeMillis() - startTime, -1);
+						if (controlThreadRunning)
+							sendMessage(MESSAGE_RELEASE_TEST, -1, -1, -1, SystemClock.uptimeMillis() - startTime, -1);
 						//try {
 						//	Thread.sleep(2000);
 						//} catch (InterruptedException e) {
@@ -681,19 +718,35 @@ public class AllTestsActivity extends Activity {
 						//} catch (InterruptedException e) {
 						//	Log.e("ERROR", "Thread was Interrupted");
 						//}
+						
+						// break if thread was interrupted.
+						if (!controlThreadRunning)
+							break;
 					}
 
 					// store results
-					sendMessage(MESSAGE_STORE_RESULTS, -1, -1, -1, SystemClock.uptimeMillis() - startTime, m);
+					if (controlThreadRunning)
+						sendMessage(MESSAGE_STORE_RESULTS, -1, -1, -1, SystemClock.uptimeMillis() - startTime, m);
 
 					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/7);
 					progressBar.setProgress(((int)((actualProgress / totalProgress) * 100)));
+					
+					// break if thread was interrupted.
+					if (!controlThreadRunning)
+						break;
 				}
 
+				// break if thread was interrupted.
+				if (!controlThreadRunning)
+					break;
 			}
 
+			// Set progress bar to 100%
+			progressBar.setProgress(100);
+
 			// Turn off when done.
-			sendMessage(MESSAGE_FINISH_TESTS, -1, -1, -1, -1, -1);
+			if (controlThreadRunning)
+				sendMessage(MESSAGE_FINISH_TESTS, -1, -1, -1, -1, -1);
 		}
 	}
 
