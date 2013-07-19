@@ -12,6 +12,9 @@ public abstract class AdditiveSynthesisLookupTable extends StressAlgorithm {
 	protected float  sine[];	
 	protected static final double TWOPI = 2.0 * Math.PI;
 	private static final int SINETABLE_SIZE = 1024;
+	
+	// The coefficient that multiplies all oscillators
+	protected float coefficient;
 
 	// Lookup variables
 	protected float ind[] = new float[1024];  // the last index read for each oscillator
@@ -42,15 +45,12 @@ public abstract class AdditiveSynthesisLookupTable extends StressAlgorithm {
 		for (int n = 0; n < buffer.length; n++) {
 			buffer[n] = 0;
 			for (int k = 0; k < stressParameter; k++) {
-				buffer[n] += interp(ind[k]+n*deltai[k]);
+				buffer[n] += coefficient*lookup(ind[k]+n*deltai[k]);
 			}
-			buffer[n] /= stressParameter;  // normalize
-			
-			// update indexes
-			if (n == buffer.length - 1)
-				for (int k = 0; k < stressParameter; k++)
-					ind[k] = modS(ind[k]+dt*deltai[k]);
 		}
+		// update indexes
+		for (int k = 0; k < stressParameter; k++)
+			ind[k] = modS(ind[k]+buffer.length*deltai[k]);
 	}
 	
 	/**
@@ -88,5 +88,18 @@ public abstract class AdditiveSynthesisLookupTable extends StressAlgorithm {
 	 * @param i
 	 * @return
 	 */
-	protected abstract float interp(float i);
+	protected abstract float lookup(float i);
+	
+	/**
+	 * Set the block size and update the coefficient.
+	 * 
+	 * @param bSize
+	 */
+	public void setBlockSize(int bSize) {
+		super.setBlockSize(bSize);
+		if (stressParameter != 0)
+			coefficient = 1/stressParameter;
+		else
+			coefficient = 1;
+	}
 }

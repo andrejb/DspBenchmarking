@@ -24,7 +24,7 @@ public class AdditiveSynthesisLookupTableLinear extends
 	/**
 	 * Linear interpolation.
 	 */
-	protected float interp(float i)
+	protected float lookup(float i)
 	{
 		float y = i - (int) i;
 		int i0,i1;

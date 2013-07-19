@@ -15,7 +15,7 @@ AdditiveSynthesisLookupTable {
 		super(sRate, bSize, stressParam);
 	}
 
-	protected float interp(float i)
+	protected float lookup(float i)
 	{
 		float y = i - (int) i;
 		int i0,i1,i2,i3;
