@@ -245,8 +245,6 @@ public class AllTestsActivity extends Activity {
 		workingBar.setVisibility(ProgressBar.INVISIBLE);
 		toggleTestsButton.setTextOff("Testes finalizados.");
 		toggleTestsButton.toggle();
-		//Intent i = new Intent();
-		//i.putExtra("results", results);
 	}
 
 	/**
@@ -354,7 +352,8 @@ public class AllTestsActivity extends Activity {
 	 */
 	private void storeResults(int stressParam, long totalTime) {
 		String info = (new String(getDspThreadInfo(stressParam)));
-		info += " # test time: " + ((float)(totalTime - lastTotalTime)/ 1000) + " s\n";
+		// add test time
+		info += " " + String.format("%5.2f\n", ((float)(totalTime - lastTotalTime)/ 1000));
 		lastTotalTime = totalTime;
 		results += info;
 	}
@@ -411,34 +410,27 @@ public class AllTestsActivity extends Activity {
 		 */
 		private void sendMessage(String action, int bSize, int alg,
 				int mdCycles, long totalTime, int stressParam) {
-			String logString = "  action: "+action+"\n";
 			Message msg = mHandler.obtainMessage();
 			Bundle b = new Bundle();
 			b.putString(MESSAGE_ACTION, action);
 			if (bSize >= 0) {
 				b.putInt(MESSAGE_BLOCK_SIZE, bSize);
-				logString += "  block size: "+bSize+"\n";
 			}
 			if (alg >= 0) {
 				b.putInt(MESSAGE_ALGORITHM, alg);
-				logString += "  algorithm: "+alg+"\n";
 			}
 			if (mdCycles>= 0) {
 				b.putInt(MESSAGE_MAX_DSP_CYCLES, mdCycles);
-				logString += "  max cycles: "+mdCycles+"\n";
 			}
 			if (totalTime >= 0) {
 				b.putLong(MESSAGE_TOTAL_TIME, totalTime);
-				logString += "  total time: "+totalTime+"\n";
 			}
 			if (stressParam >= 0) {
 				b.putInt(MESSAGE_STRESS_PARAM, stressParam);
-				logString += "  stress param: "+stressParam+"\n";
 			}
 			msg.setData(b);
 
 			// Send the message and wait for it to be handled.
-			Log.i("TEST CONTROL", "Sending control message: \n"+logString);
 			messageHandlerTaskDone = false;
 			mHandler.sendMessage(msg);
 			while (!messageHandlerTaskDone)
@@ -499,14 +491,6 @@ public class AllTestsActivity extends Activity {
 					if (controlThreadRunning)
 						sendMessage(MESSAGE_LAUNCH_TEST, blockSize, algorithm, maxDspCycles, -1, -1);
 
-					// wait for test to start
-					//try {
-					//	Log.i("TESTS PHASE 1", "Waiting for test to start.");
-					//	Thread.sleep(2000);
-					//} catch (InterruptedException e) {
-					//	Log.e("ERROR", "Thread was Interrupted");
-					//}
-
 					Log.i("TESTS PHASE 1", "Wait for test to end...");
 					// Wait for tests to end
 					while (controlThreadRunning && !dt.isSuspended())
@@ -527,13 +511,6 @@ public class AllTestsActivity extends Activity {
 					} catch (InterruptedException e) {
 						Log.e("ERROR", "Thread was Interrupted");
 					}
-					//System.gc();
-					// wait for garbage collector
-					//try {
-					//	Thread.sleep(5000);
-					//} catch (InterruptedException e) {
-					//	Log.e("ERROR", "Thread was Interrupted");
-					//}
 
 					if (controlThreadRunning)
 						sendMessage(MESSAGE_STORE_RESULTS, -1, algorithm, -1,
@@ -691,6 +668,7 @@ public class AllTestsActivity extends Activity {
 			progressBar.setProgress(100);
 
 			// Turn off when done.
+			
 			if (controlThreadRunning)
 				sendMessage(MESSAGE_FINISH_TESTS, -1, -1, -1, SystemClock.uptimeMillis() - startTime, -1);
 		}
@@ -729,7 +707,7 @@ public class AllTestsActivity extends Activity {
 		sbuf.append("# time: " + Build.TIME + "\n");
 		sbuf.append("# type: " + Build.TYPE + "\n");
 		sbuf.append("# user: " + Build.USER + "\n\n");
-		sbuf.append("# bsize time  cbt   readt sampread sampwrit blockper cbperiod perftime calltime stress\n");
+		sbuf.append("# bsize time  cbt   readt sampread sampwrit blockper cbperiod perftime calltime stress testtime\n");
 		return sbuf.toString();
 	}
 
