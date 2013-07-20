@@ -63,7 +63,7 @@
         <string name="elapsed_time">"Elapsed time:  "</string>
         <string name="param_1">"Parameter 1:  "</string>
         <string name="audio_source">Audio source:</string>
-        <string name="dsp_benchmarking">Executando testes</string>
+        <string name="dsp_benchmarking">Testes de processamento</string>
         <string name="start">start</string>
         <string name="loopback">&quot;Loopback  &quot;</string>
         <string name="dash">-</string>
@@ -74,7 +74,7 @@
     	<string name="emao">"M: "</string>
     	<string name="seconds">" s."</string>
     	<string name="test_statistics">__Test statistics__</string>
-    	<string name="run_all_tests">TESTE: clique para iniciar os testes (ao final você poderá nos enviar um email com os resultados).</string>
+    	<string name="run_all_tests">TESTES: clique para iniciar os testes (ao final você poderá nos enviar um email com os resultados).</string>
     	<string name="choose_an_option">Escolha uma opção:</string>
     	<string name="explain_tests">Para rodar os testes no aparelho, clique no botão a seguir. Ao final, você terá a opção de nos enviar um email com os resultados.</string>
     	<string name="airplane_mode">Coloque o dispositivo no Modo Avião para liberar os testes.</string>
