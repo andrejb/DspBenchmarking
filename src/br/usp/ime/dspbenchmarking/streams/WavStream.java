@@ -207,7 +207,7 @@ public class WavStream extends AudioStream {
 		// schedule the DSP function.
 		if (dspTask == null) {
 			Log.w("scheduleDspCallback", "scheduling, calling gc():");
-			System.gc();
+			//System.gc();
 			Log.w("scheduleDspCallback", "finished gc().");
 			/*try {
 				Log.w("WavStream", "sleeping...");
