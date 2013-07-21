@@ -1,9 +1,9 @@
 package br.usp.ime.dspbenchmarking.algorithms;
 
 /**
- * This algorithm performs additive synthesis using table lookup with cubic interpolation.
+ * Additive synthesis using table lookup with cubic interpolation.
  * 
- * @author drjohn
+ * @author andrejb
  *
  */
 public class AdditiveSynthesisLookupTableCubic extends

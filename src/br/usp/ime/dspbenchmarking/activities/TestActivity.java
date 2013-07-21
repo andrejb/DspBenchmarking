@@ -24,6 +24,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+/**
+ * Provides the GUI for running tests. 
+ * 
+ * @author andrejb
+ *
+ */
 public abstract class TestActivity extends DspActivity {
 
 	// Views

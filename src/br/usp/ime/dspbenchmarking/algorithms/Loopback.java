@@ -2,7 +2,7 @@ package br.usp.ime.dspbenchmarking.algorithms;
 
 
 /**
- * This class implements a simple loopback algorithm, that actually does
+ * A simple loopback algorithm, that actually does
  * nothing. It is meant to be used as a reference of the minimal time the
  * DSP infrastructure takes. 
  * 

@@ -1,8 +1,7 @@
 package br.usp.ime.dspbenchmarking.algorithms;
 
 /**
- * This algorithm performs an additives synthesis using table lookup using a
- * truncated index.
+ * An additive synthesis using table lookup with a truncated index.
  * 
  * @author andrejb
  *

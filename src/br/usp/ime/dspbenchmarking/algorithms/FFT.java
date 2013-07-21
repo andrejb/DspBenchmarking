@@ -18,7 +18,7 @@ package br.usp.ime.dspbenchmarking.algorithms;
 
 public class FFT {
 	/**
-	 * This is a Java implementation of the fast Fourier transform
+	 * A Java implementation of the fast Fourier transform
 	 * written by Jef Poskanzer. The copyright appears above.
 	 */
 

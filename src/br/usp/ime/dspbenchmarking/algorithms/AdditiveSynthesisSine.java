@@ -2,9 +2,8 @@ package br.usp.ime.dspbenchmarking.algorithms;
 
 
 /**
- * This algorithm defines an Additive Synthesis using a number of oscillators 
- * equal to the stressParameter. The oscilator is calculated using Java's
- * Math.sin() function.
+ * Additive Synthesis using Java's Math.sin() method. It uses a number of oscillators 
+ * equal to the stressParameter. 
  *  
  * @author andrejb
  *

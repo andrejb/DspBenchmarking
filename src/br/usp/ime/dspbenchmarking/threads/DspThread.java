@@ -23,8 +23,8 @@ import android.os.SystemClock;
 import android.util.Log;
 
 
-/************************************************************************
- * This is the thread that controls DSP. It is responsible for:
+/**
+ * The thread that controls and performs DSP. It is responsible for:
  * 	- I/O instantiation and release.
  *  - DSP parameters control.
  *  - Processing audio blocks.
@@ -36,7 +36,7 @@ import android.util.Log;
  *  release I/O stuff).
  *  
  *  To kill the thread, use stopDspThread().
- ***********************************************************************/
+ */
 public class DspThread extends Thread {
 
 	// DSP parameters

@@ -16,7 +16,12 @@ import java.util.concurrent.TimeUnit;
 import android.os.SystemClock;
 import android.util.Log;
 
-
+/**
+ * An audio stream that comes from a WAV file.
+ * 
+ * @author andrejb
+ *
+ */
 public class WavStream extends AudioStream {
 
 	// Wav file info

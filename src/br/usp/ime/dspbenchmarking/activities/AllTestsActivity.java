@@ -21,7 +21,7 @@ import br.usp.ime.dspbenchmarking.R;
 import br.usp.ime.dspbenchmarking.threads.DspThread;
 
 /**
- * This class performs all tests in a device. Tests are divided in 2 phases:
+ * An activity that performs all tests in a device. Tests are divided in 2 phases:
  * 
  * 	 Phase 1: measurement of time taken to perform common tasks (loopback,
  *            FFT, IIR filtering).

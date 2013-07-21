@@ -2,7 +2,7 @@ package br.usp.ime.dspbenchmarking.algorithms;
 
 
 /**
- * This class implements a simple IIR reverberation filter.
+ * A simple IIR reverberation filter.
  * 
  * @author andrejb
  *

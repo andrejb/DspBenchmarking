@@ -8,10 +8,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-/************************************************************************
- * SystemWatchThread Monitors system parameters and sends messages to the
- * main thread.
- ***********************************************************************/
+/**
+ *Monitor system parameters and send messages to the main thread.
+ */
 public class SystemWatchThread extends Thread {
 
 	// Class constants defining state of the thread

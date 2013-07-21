@@ -11,6 +11,13 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.widget.TextView;
 
+/**
+ * ATTENTION: This class is currently not used. This is on of the reasons
+ * why is is not properly documented.
+ * 
+ * @author andrejb
+ *
+ */
 public class StressActivity extends TestActivity {
 
 

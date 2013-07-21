@@ -1,7 +1,7 @@
 package br.usp.ime.dspbenchmarking.algorithms;
 
 /**
- * This algorithm performs an additives synthesis using table lookup with linear interpolation.
+ * Additives synthesis using table lookup with linear interpolation.
  * 
  * @author andrejb
  *

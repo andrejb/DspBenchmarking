@@ -3,9 +3,9 @@ package br.usp.ime.dspbenchmarking.algorithms;
 import java.util.Random;
 
 /**
- * The convolution algorithm actually just implements a random FIR filter
- * that may vary it's length. The idea is just to be able to know if arbitrary
- * filters of a given size are feasible in a specific device. 
+ * A random FIR filter that may vary it's length. The idea is just to be able
+ * to know if arbitrary filters of a given size are feasible in a specific
+ * device. 
  * 
  * @author andrejb
  *

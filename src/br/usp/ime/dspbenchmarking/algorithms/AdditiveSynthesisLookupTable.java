@@ -1,7 +1,7 @@
 package br.usp.ime.dspbenchmarking.algorithms;
 
 /**
- * This class defines an abstract additive synthesis using lookup table.
+ * An abstract additive synthesis using lookup table.
  * 
  * @author andrejb
  *

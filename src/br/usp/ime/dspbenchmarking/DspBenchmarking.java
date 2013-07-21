@@ -16,7 +16,7 @@ import android.widget.TextView;
 
 
 /**
- * This is the main activity, called when the program starts. It basically
+ * The main activity, called when the program starts. It basically
  * lets the user to choose from using the DSP facilities in an example
  * activity (which I called "LiveActivity") or running automated tests that
  * will send a report through email when they are finished.
