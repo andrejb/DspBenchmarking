@@ -21,7 +21,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:onClick="toggleTests"
-            android:text="@string/start" />
+            android:textOff="@string/start" />
 
         <RelativeLayout
             android:id="@+id/linearLayout1"
@@ -37,6 +37,13 @@
                 android:indeterminate="true" />
         </RelativeLayout>
 
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/current_test"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
         <LinearLayout
             android:id="@+id/linearLayout2"
             android:layout_width="fill_parent"
@@ -46,15 +53,30 @@
                 android:id="@+id/algorithmName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/loopback" />
+                android:text="@string/dash"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
+            <TextView
+                android:id="@+id/separator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dash_with_spaces"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+            
             <TextView
                 android:id="@+id/blockSize"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/dash"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:textAppearance="?android:attr/textAppearanceMedium" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/progress"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <ProgressBar
             android:id="@+id/progressBar"
@@ -62,9 +84,11 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" />
 
+        <!--
         <include
             android:id="@+id/testStats"
             layout="@layout/stats" />
+        -->
     </LinearLayout>
 
 </ScrollView>

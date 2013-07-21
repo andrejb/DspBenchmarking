@@ -1,5 +1,13 @@
-package br.usp.ime.dspbenchmarking;
+package br.usp.ime.dspbenchmarking.algorithms;
 
+
+/**
+ * ATTENTION: This class is currently not used. This is on of the reasons
+ * why is is not properly documented.
+ * 
+ * @author andrejb
+ *
+ */
 public class PitchShifting extends DspAlgorithm {
 
 	public PitchShifting(int sRate, int bSize) {
@@ -24,7 +32,6 @@ public class PitchShifting extends DspAlgorithm {
 		// TimeScaleSOLA loop.
 		//===================================================================
 		// Time Stretching using alpha2 = 1/alpha
-		double alpha2 = 1.0/alpha;
 		for (int ni = 0; ni < M-1; ni++) {
 			// grain
 			int grainStart = ni*Sa+1;
@@ -53,8 +60,8 @@ public class PitchShifting extends DspAlgorithm {
 				fadein[i] = 0 + i*fadeStep;
 			
 			// tail
-			short[] Tail = dotMultiply(overlap, fadeout);
-			short[] Begin = dotMultiply(grain, fadein);
+			//short[] Tail = dotMultiply(overlap, fadeout);
+			//short[] Begin = dotMultiply(grain, fadein);
 			
 		}
 	}
@@ -97,11 +104,18 @@ public class PitchShifting extends DspAlgorithm {
 	 * @param x2
 	 * @return
 	 */
-	private short[] dotMultiply(short[] x1, double[] x2) {
-		short[] r = new short[x1.length];
-		for (int i = 0; i < r.length; i++)
-			r[i] = (short) (x1[i] * x2[i]);
-		return r;
-	}
+	//private short[] dotMultiply(short[] x1, double[] x2) {
+	//	short[] r = new short[x1.length];
+	//	for (int i = 0; i < r.length; i++)
+	//		r[i] = (short) (x1[i] * x2[i]);
+	//	return r;
+	//}
 
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "Pitch Shifting";
+	}
 }

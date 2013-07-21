@@ -1,8 +1,10 @@
-package br.usp.ime.dspbenchmarking;
+package br.usp.ime.dspbenchmarking.activities;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import br.usp.ime.dspbenchmarking.R;
+import br.usp.ime.dspbenchmarking.threads.DspThread;
 import android.content.res.Resources.NotFoundException;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +17,15 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
 
+/**
+ * The live activity allows for use of the DSP facilities during a live
+ * performance. In fact, it can be seen more as an "examples" screen with
+ * the implemented algorithms and possibility of switching between distinct
+ * block sizes, audio inputs and algorithms. 
+ * 
+ * @author andrejb
+ *
+ */
 public class LiveActivity extends DspActivity {
 	
 	//private static final String TAG = "DspActivity";
@@ -36,16 +47,17 @@ public class LiveActivity extends DspActivity {
 
 
 
-	/************************************************************************
-	 * onCreate Calles when the activity is first created.
-	 ***********************************************************************/
+	/**
+	 * Called when the activity is first created. Setup the screen with options
+	 * for modifying the DSP parameters (block size, algorithm, audio input,
+	 * etc).
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		// Set the view
 		setContentView(R.layout.dsp);
 		super.onCreate(savedInstanceState);
-		
-		
+				
 		// Get views
 		toggleDSPView = (CheckBox) findViewById(R.id.toggle_dsp);
 		parameter1View = (SeekBar) findViewById(R.id.param1);
@@ -58,7 +70,7 @@ public class LiveActivity extends DspActivity {
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		algorithmView.setAdapter(adapter);
 		algorithmView.setOnItemSelectedListener(new AlgorithmListener());
-		algorithmView.setSelection(1);
+		algorithmView.setSelection(0);
 		
 		// Init block size list
 		dspBlockSizeView = (Spinner) findViewById(R.id.dspBlockSize);
@@ -78,7 +90,7 @@ public class LiveActivity extends DspActivity {
 		adapter3.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		audioSourceView.setAdapter(adapter3);
 		audioSourceView.setOnItemSelectedListener(new AudioSourceListener());
-		audioSourceView.setSelection(1);
+		audioSourceView.setSelection(0);
 
 		// Input parameters listeners
 		parameter1View.setMax(maxParamValue);
@@ -86,50 +98,65 @@ public class LiveActivity extends DspActivity {
 		parameter1View.setOnSeekBarChangeListener(parameter1Listener);
 				
 	}
+	
+	/**
+	 * Stop DSP and finish the activity when "back" is pressed.
+	 */
+	public void onBackPressed() {
+		if (toggleDSPView.isChecked()) {
+			toggleDSPView.setChecked(false);
+			toggleDSP(null);
+		}
+		setResult(1);
+		finish();
+	}
 
 	
-	/************************************************************************
-	 * This turns FFT processing on and off.
-	 ***********************************************************************/
+	/**
+	 * Turn processing on and off, according to button in
+	 * 'res/layout/main.xml' interface. 
+	 * @param v
+	 */
 	public void toggleDSP(View v) {
+		/* Turn DSP ON */
 		if (toggleDSPView.isChecked()) {
-			// Threads
-			if (audioSource == 0)
-				dt = new DspThread(blockSize, dspAlgorithm);
-			else {
-				InputStream is = null;
-				if (audioSource == 1)
-					try {
-						is = getResources().openRawResourceFd(R.raw.alien_orifice).createInputStream();
-					} catch (NotFoundException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				dt = new DspThread(blockSize, dspAlgorithm, is);
-			}
+			Log.i("DSP", "Starting new DSP thread.");
+			dt = new DspThread();
+			dt.setBlockSize(blockSize);
+			dt.setAlgorithm(dspAlgorithm);
+			dt.setAudioSource(audioSource);
 			dt.setParams(parameter1);
+			// if reading WAV, set input stream
+			if (audioSource == DspThread.AUDIO_SOURCE_WAV) {
+				InputStream is = null;
+				try {
+					is = getResources().openRawResourceFd(R.raw.alien_orifice).createInputStream();
+				} catch (NotFoundException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				dt.setInputStream(is);
+			}
 			dt.start();
+			dt.resumeDsp();
 			// mProgressStatus = (int) readUsage() * 100;
-		} else {
+		}
+		/* Turn DSP OFF */
+		else {
+			Log.i("DSP", "Stopping existing DSP thread.");
 			try {
-				//swt.stopRunning();
-				dt.stopRunning();
-				//swt = null;
+				dt.stopDspThread();
 				dt = null;
 			} catch (SecurityException e) {
 				e.printStackTrace();
 			}
 		}
-		// Start lengthy operation in a background thread
-		// setContentView(R.layout.fft);
-		// EditText et = (EditText) findViewById(R.id.texto1);
-		// et.setText(mProgress.toString());
 	}
 
 	
 	/************************************************************************
-	 * Listener for algorithm change.
+	 * Listeners for algorithm change.
 	 ***********************************************************************/
 	private class AlgorithmListener implements OnItemSelectedListener {
 

@@ -1,5 +1,13 @@
-package br.usp.ime.dspbenchmarking;
+package br.usp.ime.dspbenchmarking.algorithms;
 
+
+/**
+ * ATTENTION: This class is currently not used. This is on of the reasons
+ * why is is not properly documented.
+ * 
+ * @author andrejb
+ *
+ */
 public class PhaseVocoder extends DspAlgorithm {
 
 	private double mag[];
@@ -37,9 +45,10 @@ public class PhaseVocoder extends DspAlgorithm {
 			imag[i] = 0;
 		}
 		// Do PV analysis
-		//Analysis(real, imag);
+		Analysis(real, imag);
 		//double out[] = Synthesis(real, imag);
 		//System.arraycopy(buffer, 0, out, 0, getBlockSize());
+		Synthesis(real, imag);
 	}
 	
 	private void Analysis(double real[], double imag[]) {
@@ -89,6 +98,14 @@ public class PhaseVocoder extends DspAlgorithm {
 				x += TWOPI;
 		}
 		return x;
+	}
+	
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "Phase Vocoder";
 	}
 
 }

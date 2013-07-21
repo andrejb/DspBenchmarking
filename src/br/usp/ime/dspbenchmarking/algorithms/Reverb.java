@@ -1,5 +1,12 @@
-package br.usp.ime.dspbenchmarking;
+package br.usp.ime.dspbenchmarking.algorithms;
 
+
+/**
+ * A simple IIR reverberation filter.
+ * 
+ * @author andrejb
+ *
+ */
 public class Reverb extends DspAlgorithm {
 	
 	private double oldOutput[];
@@ -13,8 +20,6 @@ public class Reverb extends DspAlgorithm {
 	}
 	
 	public void perform(double[] buffer) {
-		//int delayMilliseconds = 5;
-		//int delaySamples = (int)((float)delayMilliseconds * this.getSampleRate() / 1000);
 		// holds old input values
 		double[] tmpOldInput = new double[this.getBlockSize()];
 		System.arraycopy(buffer, 0, tmpOldInput, 0, this.getBlockSize());
@@ -22,7 +27,6 @@ public class Reverb extends DspAlgorithm {
 		int m = (int) (this.getParameter1() * this.getBlockSize());
 		if (m < 1)
 			m=1;
-		//m=40;
 		// feedback gain
 		double g = 0.7;
 		//double g = this.getParameter1();
@@ -38,4 +42,21 @@ public class Reverb extends DspAlgorithm {
 
 	}
 	
+	/**
+	 * Take care of reinitialize arrays when block size is changed.
+	 */
+	public void setBlockSize(int bSize) {
+		super.setBlockSize(bSize);
+		oldOutput = new double[bSize];
+		oldInput = new double[bSize];
+		java.util.Arrays.fill(oldOutput, 0);
+	}
+	
+	/**
+	 * @return The name of the algorithm.
+	 */
+	public String getAlgorithmName()
+	{
+		return "IIR Filter Reverb";
+	}
 }

@@ -1,45 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollViewMainActivity"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:layout_height="wrap_content" >
 
-    <Button
+    <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:onClick="startLiveActivity"
-        android:text="@string/dsp" />
+        android:orientation="vertical" >
 
-    <Button
-        android:id="@+id/button1"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:onClick="startTestActivity"
-        android:text="@string/dsp_benchmarking" />
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/welcome"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <Button
-        android:id="@+id/button2"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-                android:onClick="startStressActivity"
-        
-        android:text="@string/stress_test" />
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/instructions"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <ProgressBar
-        android:id="@+id/pb1"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:indeterminate="false"
-        android:max="100" />
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/choose_an_option"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <EditText
-        android:id="@+id/texto1"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:hint="" >
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:onClick="startLiveActivity"
+            android:text="@string/dsp" />
 
-        <requestFocus />
-    </EditText>
+        <Button
+            android:id="@+id/buttonStartAllTestsActivity"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:onClick="startAllTestsActivity"
+            android:text="@string/run_all_tests" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/textAirplaneMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/airplane_mode" />
+    </LinearLayout>
+
+</ScrollView>

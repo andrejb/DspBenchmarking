@@ -1,4 +1,4 @@
-package br.usp.ime.dspbenchmarking;
+package br.usp.ime.dspbenchmarking.streams;
 
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
@@ -16,7 +16,12 @@ import java.util.concurrent.TimeUnit;
 import android.os.SystemClock;
 import android.util.Log;
 
-
+/**
+ * An audio stream that comes from a WAV file.
+ * 
+ * @author andrejb
+ *
+ */
 public class WavStream extends AudioStream {
 
 	// Wav file info
@@ -114,7 +119,7 @@ public class WavStream extends AudioStream {
 	 * @throws IOException
 	 */
 	private void initWavPcm() throws IOException {
-		int shortBlocks = (int) Math.ceil(((float) dataSizeInBytes / 2) / blockSize) + 2;
+		int shortBlocks = (int) android.util.FloatMath.ceil(((float) dataSizeInBytes / 2) / blockSize) + 2;
 		ByteBuffer buffer = ByteBuffer.allocate(shortBlocks * 2 * blockSize);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 		inputStream.skip(HEADER_SIZE);
@@ -186,12 +191,7 @@ public class WavStream extends AudioStream {
 		return dataSizeInBytes / 2;
 	}
 
-	/**
-	 * 
-	 */
-	public short[] createBuffer() {
-		return new short[getBufferSize()];
-	}
+
 	
 	public int getBufferSize() {
 		return blocks() * blockSize;
@@ -203,7 +203,7 @@ public class WavStream extends AudioStream {
 	 */
 	public int blocks() {
 		if (inputStream != null)
-			return (int) Math.ceil((float) getDataSizeInShorts() / blockSize);
+			return (int) android.util.FloatMath.ceil((float) getDataSizeInShorts() / blockSize);
 		return 0;
 	}
 
@@ -211,14 +211,15 @@ public class WavStream extends AudioStream {
 	public void scheduleDspCallback(long blockPeriodNanoseconds) {
 		// schedule the DSP function.
 		if (dspTask == null) {
-			Log.w("scheduleDspCallback", "scheduling....");
-			System.gc();
-			try {
+			Log.w("scheduleDspCallback", "scheduling, calling gc():");
+			//System.gc();
+			Log.w("scheduleDspCallback", "finished gc().");
+			/*try {
 				Log.w("WavStream", "sleeping...");
 				Thread.sleep(5000);
 			} catch (InterruptedException e) {
 				Log.e("ERROR", "Thread was Interrupted");
-			}
+			}*/
 			try {
 			dspTask = scheduler.scheduleAtFixedRate(fileDspCallback,
 					blockPeriodNanoseconds, blockPeriodNanoseconds,
@@ -266,7 +267,11 @@ public class WavStream extends AudioStream {
 				readTicks++;
 				// read from WAV buffer.
 				times1 = SystemClock.uptimeMillis();
-				read(buffer, block * blockSize, blockSize);
+				try {
+					read(buffer, block * blockSize, blockSize);
+				} finally {
+
+				}
 				times2 = SystemClock.uptimeMillis();
 				sampleReadTime += (times2 - times1);
 				// if (elapsedTime > (100000.0 * (float) blockSize /
@@ -299,7 +304,7 @@ public class WavStream extends AudioStream {
 	 * 
 	 */
 	@Override
-	protected int getMinBufferSize() {
+	public int getMinBufferSize() {
 		return 4096;
 	}
 
