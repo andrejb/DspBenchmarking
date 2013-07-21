@@ -28,6 +28,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
         <activity
             android:name="br.usp.ime.dspbenchmarking.activities.LiveActivity"
             android:screenOrientation="portrait" >
@@ -37,6 +38,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        
         <activity
             android:name="br.usp.ime.dspbenchmarking.activities.AllTestsActivity"
             android:screenOrientation="portrait" >

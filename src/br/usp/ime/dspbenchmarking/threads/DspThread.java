@@ -13,6 +13,8 @@ import br.usp.ime.dspbenchmarking.algorithms.Loopback;
 import br.usp.ime.dspbenchmarking.algorithms.Reverb;
 import br.usp.ime.dspbenchmarking.algorithms.Convolution;
 import br.usp.ime.dspbenchmarking.algorithms.StressAlgorithm;
+import br.usp.ime.dspbenchmarking.algorithms.fftw.FFTWAlgorithm;
+import br.usp.ime.dspbenchmarking.algorithms.fftw.FFTWMultithreadAlgorithm;
 import br.usp.ime.dspbenchmarking.streams.AudioStream;
 import br.usp.ime.dspbenchmarking.streams.MicStream;
 import br.usp.ime.dspbenchmarking.streams.WavStream;
@@ -99,7 +101,7 @@ public class DspThread extends Thread {
 		.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
 		// Instantiate algorithms
-		algorithms = new DspAlgorithm[8];
+		algorithms = new DspAlgorithm[10];
 		algorithms[0] = new Loopback(sampleRate, DEFAULT_BLOCK_SIZE);
 		algorithms[1] = new Reverb(sampleRate, DEFAULT_BLOCK_SIZE);
 		algorithms[2] = new FftAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE);
@@ -108,6 +110,8 @@ public class DspThread extends Thread {
 		algorithms[5] = new AdditiveSynthesisLookupTableLinear(sampleRate, DEFAULT_BLOCK_SIZE, 1);
 		algorithms[6] = new AdditiveSynthesisLookupTableCubic(sampleRate, DEFAULT_BLOCK_SIZE, 1);
 		algorithms[7] = new AdditiveSynthesisLookupTableTruncated(sampleRate, DEFAULT_BLOCK_SIZE, 1);
+		algorithms[8] = new FFTWAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE);
+		algorithms[9] = new FFTWMultithreadAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE);
 
 		// set default DSP values
 		setAlgorithm(0);  // Loopback
@@ -222,6 +226,8 @@ public class DspThread extends Thread {
 	 *   3. PhaseVocoder.
 	 *   4. StressAlgorithm.
 	 *   5. Additive Synthesis.
+	 *   8. FFTW monothread.
+	 *   9. FFTW multithread.
 	 *   
 	 * @param alg The number of the algorithm.
 	 */
@@ -232,7 +238,7 @@ public class DspThread extends Thread {
 		dspAlgorithm = algorithms[algorithm];
 		dspAlgorithm.setBlockSize(blockSize);
 		Log.i("DSP", "Algorithm set: "+String.valueOf(dspAlgorithm)+".");
-		if (algorithm >= 3) {
+		if (algorithm >= 3 && algorithm <= 7) {
 			StressAlgorithm stressAlg = (StressAlgorithm) dspAlgorithm;
 			stressAlg.setStressParameter(stressParameter);
 		}
