@@ -55,7 +55,7 @@ public class AllTestsActivity extends Activity {
 	private final int END_BLOCK_SIZE = (int) Math.pow(2,13);
 	
 	// Number of algorithms tested
-	private final int ALGORITHMS_TESTED = 8;
+	private final int ALGORITHMS_TESTED = 10;
 	// Variables for setting views
 	protected final double LOG2 = Math.log(2);
 	protected final int LOG_START_BLOCK_SIZE = (int) Math.log(START_BLOCK_SIZE);
@@ -189,6 +189,10 @@ public class AllTestsActivity extends Activity {
 				algorithmName.setText("Additive Synthesis (cubic)  ");
 			else if (algorithm == 7)
 				algorithmName.setText("Additive Synthesis (truncated)  ");
+            else if (algorithm == 8)
+                algorithmName.setText("FFTW monothread");
+            else if (algorithm == 9)
+                algorithmName.setText("FFTW multithread");
 			lastAlg = algorithm;
 		}
 		algorithmName.setText(dt.getAlgorithmName());
@@ -459,6 +463,7 @@ public class AllTestsActivity extends Activity {
 
 			// keep track of time
 			long startTime = SystemClock.uptimeMillis();
+            int algorithm_count = 0;
 
 			/*************************************************************
 			 * Phase 1: Loopback, Reverb and FFT algorithms.
@@ -467,7 +472,7 @@ public class AllTestsActivity extends Activity {
 			int endAlgorithm = 2; // FFT
 
 			// Iterate through algorithms
-			for (algorithm = startAlgorithm; algorithm <= endAlgorithm; algorithm++) {
+			for (algorithm = startAlgorithm; algorithm <= endAlgorithm; algorithm++, algorithm_count++) {
 				Log.i("TESTS PHASE 1", "Starting test with algorithm "+algorithm+".");
 				// Iterate through power of 2 blocks
 				for (blockSize = START_BLOCK_SIZE; blockSize <= END_BLOCK_SIZE; blockSize *= 2) {	
@@ -517,7 +522,7 @@ public class AllTestsActivity extends Activity {
 								SystemClock.uptimeMillis() - startTime, -1);
 
 					// increase status bar
-					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/ALGORITHMS_TESTED);
+					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm_count*totalProgress/ALGORITHMS_TESTED);
 					progressBar
 					.setProgress((int)((actualProgress / totalProgress) * 100));
 					
@@ -532,17 +537,88 @@ public class AllTestsActivity extends Activity {
 			}
 
 
+            /*************************************************************
+             * Phase 2: FFTW monothread and FFTW multithread
+             ************************************************************/
+            startAlgorithm = 8; // FFTW monothread
+            endAlgorithm = 9; // FFTW multithread
+
+            // Iterate through algorithms
+            for (algorithm = startAlgorithm; algorithm <= endAlgorithm; algorithm++, algorithm_count++) {
+                Log.i("TESTS PHASE 2", "Starting test with algorithm "+algorithm+".");
+                // Iterate through power of 2 blocks
+                for (blockSize = START_BLOCK_SIZE; blockSize <= END_BLOCK_SIZE; blockSize *= 2) {
+                    Log.i("TESTS PHASE 2", "Starting test with block size " + blockSize+".");
+
+                    // limit number of DSP cycles, depending on the block
+                    // size. This is so that tests do not run for a
+                    // extremely large period of time.
+					/*if (blockSize <= 64)
+						maxDspCycles = 5000;
+					else if (blockSize <= 512)
+						maxDspCycles = 1000;
+					else if (blockSize <= 2048)
+						maxDspCycles = 500;
+					else
+						maxDspCycles = 100;*/
+
+                    maxDspCycles = 100;
+
+                    // Send message for starting a new test
+                    if (controlThreadRunning)
+                        sendMessage(MESSAGE_LAUNCH_TEST, blockSize, algorithm, maxDspCycles, -1, -1);
+
+                    Log.i("TESTS PHASE 2", "Wait for test to end...");
+                    // Wait for tests to end
+                    while (controlThreadRunning && !dt.isSuspended())
+                        try {
+                            Log.i("TESTS PHASE 2", "  stil waiting...");
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            Log.e("ERROR", "Thread was Interrupted");
+                        }
+                    Log.i("TESTS PHASE 2", "Test ended.");
+
+                    // Sends message for releasing the test
+                    if (controlThreadRunning)
+                        sendMessage(MESSAGE_RELEASE_TEST, -1, -1, -1, -1, -1);
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        Log.e("ERROR", "Thread was Interrupted");
+                    }
+
+                    if (controlThreadRunning)
+                        sendMessage(MESSAGE_STORE_RESULTS, -1, algorithm, -1,
+                                SystemClock.uptimeMillis() - startTime, -1);
+
+                    // increase status bar
+                    double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm_count*totalProgress/ALGORITHMS_TESTED);
+                    progressBar
+                            .setProgress((int)((actualProgress / totalProgress) * 100));
+
+                    // break if thread was interrupted.
+                    if (!controlThreadRunning)
+                        break;
+                }
+
+                // break if thread was interrupted.
+                if (!controlThreadRunning)
+                    break;
+            }
+
 			/*************************************************************
-			 * Phase 2: Convolution and additive synthesis.
+			 * Phase 3: Convolution and additive synthesis.
 			 ************************************************************/
 
 			startAlgorithm = 3;	// Convolution
 			endAlgorithm = 7;	// Additive Synthesis (truncated)
 
-			for (algorithm = startAlgorithm; algorithm <= endAlgorithm; algorithm++) {
-				Log.i("TESTS PHASE 2", "Starting with algorithm "+algorithm+".");
+			for (algorithm = startAlgorithm; algorithm <= endAlgorithm; algorithm++, algorithm_count++) {
+				Log.i("TESTS PHASE 3", "Starting with algorithm "+algorithm+".");
 				for (blockSize = START_BLOCK_SIZE; blockSize <= END_BLOCK_SIZE; blockSize *= 2) {
-					Log.i("TESTS PHASE 2", "Starting with block size "+blockSize+".");
+					Log.i("TESTS PHASE 3", "Starting with block size "+blockSize+".");
 
 					int stressParam = 1;
 					int m = stressParam;			// 2 ** 0
@@ -552,7 +628,7 @@ public class AllTestsActivity extends Activity {
 					// invariant: the device performs well on filters with m coefficients
 					// and bad with filters with M coefficients
 					while(m<M-1) {
-						Log.i("TESTS PHASE 2", "Starting new stress-test with m="+m+", M="+M+".");
+						Log.i("TESTS PHASE 3", "Starting new stress-test with m="+m+", M="+M+".");
 
 						// for screen preview
 						//eme = m;
@@ -626,12 +702,12 @@ public class AllTestsActivity extends Activity {
 						//===============================================
 						if (controlThreadRunning && dt.getDspCallbackMeanTime() < dt.getBlockPeriod()) {
 							m = stressParam;
-							Log.i("TESTS PHASE 2", "Stress parameter "+m+" is feasible!");
+							Log.i("TESTS PHASE 3", "Stress parameter "+m+" is feasible!");
 						}
 						else {
 							reachedPeak = true;
 							M = stressParam;
-							Log.i("TESTS PHASE 2", "Stress parameter "+M+" is *not* feasible!");
+							Log.i("TESTS PHASE 3", "Stress parameter "+M+" is *not* feasible!");
 						}
 
 
@@ -651,7 +727,7 @@ public class AllTestsActivity extends Activity {
 					if (controlThreadRunning)
 						sendMessage(MESSAGE_STORE_RESULTS, -1, -1, -1, SystemClock.uptimeMillis() - startTime, m);
 
-					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/ALGORITHMS_TESTED);
+					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm_count*totalProgress/ALGORITHMS_TESTED);
 					progressBar.setProgress(((int)((actualProgress / totalProgress) * 100)));
 					
 					// break if thread was interrupted.

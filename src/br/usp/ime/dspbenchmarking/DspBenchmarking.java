@@ -1,7 +1,5 @@
 package br.usp.ime.dspbenchmarking;
 
-import br.usp.ime.dspbenchmarking.activities.AllTestsActivity;
-import br.usp.ime.dspbenchmarking.activities.LiveActivity;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,6 +11,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import br.usp.ime.dspbenchmarking.activities.AllTestsActivity;
+import br.usp.ime.dspbenchmarking.activities.LiveActivity;
 
 
 /**
@@ -52,7 +52,7 @@ public class DspBenchmarking extends Activity {
 		// Prevent from locking
 	    this.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 	    // Set view
-	    setContentView(R.layout.main);
+	    setContentView(R.layout.main);  
 
 	    // Block test button if airplane mode is off
 	    buttonAllTestsActivity = (Button) findViewById(R.id.buttonStartAllTestsActivity);
