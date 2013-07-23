@@ -77,10 +77,10 @@ JNIEXPORT void JNICALL Java_br_usp_ime_dspbenchmarking_algorithms_fftw_FFTW_init
 		char buff[150];
 		sprintf(buff, "Failed to initialize thread");
 		(*pEnv)->ThrowNew(pEnv, (*pEnv)->FindClass(pEnv, "java/lang/Exception"), buff);
-		threads_initialized = 1;
 	} else {
 		fftw_plan_with_nthreads(num_of_threads);
 		threads_enabled = 1;
+		threads_initialized = 1;
 		__android_log_print(ANDROID_LOG_INFO, LOG_TAG, "Threads enabled");
 	}
 }
@@ -95,10 +95,11 @@ JNIEXPORT jdoubleArray JNICALL Java_br_usp_ime_dspbenchmarking_algorithms_fftw_F
 	jdouble      *resArray;
 	int i, len, n_elements;
 
-	//__android_log_print(ANDROID_LOG_INFO, LOG_TAG, "Executing FFTW");
-
 	elements   = (*pEnv)->GetDoubleArrayElements(pEnv, in, &isCopy1);
 	n_elements = (*pEnv)->GetArrayLength(pEnv, in);
+
+    __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "Executing FFTW %d %d %d", threads_enabled, threads_initialized,
+    n_elements);
 
 	real = (double*) elements;
 
