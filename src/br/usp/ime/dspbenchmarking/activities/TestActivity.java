@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import br.usp.ime.dspbenchmarking.R;
+import br.usp.ime.dspbenchmarking.threads.DspThread;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.res.Resources.NotFoundException;
@@ -34,14 +35,15 @@ public abstract class TestActivity extends DspActivity {
 
 	// Views
 	protected ToggleButton toggleTestsButton = null;
-	protected ProgressBar workingBar = null;
+	protected ProgressBar workingBar = null; 
 	protected ProgressBar progressBar = null;
 	protected TextView algorithmName = null;
 	protected TextView blockSizeView = null;
 
 
 	int blockSize;
-	int algorithm;
+	protected DspThread.AlgorithmEnum algorithm = DspThread.AlgorithmEnum.LOOPBACK;
+	private DspThread.AlgorithmEnum lastAlg   = DspThread.AlgorithmEnum.__NUM_ALGORITHMS;
 	protected int maxDspCycles;
 	
 	protected double LOG2 = Math.log(2);
@@ -270,7 +272,7 @@ public abstract class TestActivity extends DspActivity {
 	 * 
 	 * @return
 	 */
-	protected String getDspThreadInfo(int algorithm) {
+	protected String getDspThreadInfo(DspThread.AlgorithmEnum algorithm) {
 		String output = "" + algorithm + " "; 								// 1  - alg
 		output += String.format("%5d ", dt.getBlockSize()); 				// 2  - bsize
 		output += String.format("%5.0f ", dt.getElapsedTime()); 			// 3  - time
@@ -285,19 +287,9 @@ public abstract class TestActivity extends DspActivity {
 		return output;
 	}
 
-	private int lastAlg = -1;
 	protected void updateScreenInfo() {
 		if (algorithm != lastAlg) {
-			if (algorithm == 0)
-				algorithmName.setText("Loopback:  ");
-			else if (algorithm == 1)
-				algorithmName.setText("Reverb:  ");
-			else if (algorithm == 2)
-				algorithmName.setText("FFT:  ");
-			else if (algorithm == 3)
-				algorithmName.setText("Additive Synthesis:  ");
-			else if (algorithm == 4)
-				algorithmName.setText("Stress:  ");
+			algorithmName.setText(dt.getAlgorithmNameById(algorithm) + " ");
 			lastAlg = algorithm;
 		}
 		blockSizeView.setText(String.valueOf(blockSize));

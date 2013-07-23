@@ -123,7 +123,7 @@ public class LiveActivity extends DspActivity {
 			Log.i("DSP", "Starting new DSP thread.");
 			dt = new DspThread();
 			dt.setBlockSize(blockSize);
-			dt.setAlgorithm(dspAlgorithm);
+			dt.setAlgorithm(DspThread.AlgorithmEnum.values()[dspAlgorithm]);
 			dt.setAudioSource(audioSource);
 			dt.setParams(parameter1);
 			// if reading WAV, set input stream

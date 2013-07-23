@@ -42,8 +42,11 @@ public class StressActivity extends TestActivity {
 	final String dateFormat = "yyyy-MM-dd_HH-mm-ss";
 
 	// Test limits
-	static int startAlgorithm = 4;
-	static int endAlgorithm = 4;
+	//static int startAlgorithm = 4;
+	//static int endAlgorithm = 4;
+	private final DspThread.AlgorithmEnum algorithms_list[] = {
+			DspThread.AlgorithmEnum.ADD_SYNTH_SINE
+	};
 
 	// local stuff
 	private int filterSize;
@@ -79,7 +82,7 @@ public class StressActivity extends TestActivity {
 	 * 
 	 * @return
 	 */
-	private String getDspThreadInfo(int algorithm, int maxFiltersize) {
+	private String getDspThreadInfo(DspThread.AlgorithmEnum algorithm, int maxFiltersize) {
 		return super.getDspThreadInfo(algorithm)
 				+ String.format("%d ", maxFiltersize);
 	}
@@ -158,7 +161,7 @@ public class StressActivity extends TestActivity {
 
 		public TestControlThread(Handler handler) {
 			mHandler = handler;
-			algorithm = 4;
+			algorithm = DspThread.AlgorithmEnum.ADD_SYNTH_SINE;
 		}
 
 		@Override
@@ -166,7 +169,7 @@ public class StressActivity extends TestActivity {
 
 			try {
 				blockSize = START_BLOCK_SIZE;
-				algorithm = startAlgorithm;
+				algorithm = DspThread.AlgorithmEnum.ADD_SYNTH_SINE;
 				
 				// create the DSP thread for tests.
 				Message msg = mHandler.obtainMessage();
@@ -396,7 +399,7 @@ public class StressActivity extends TestActivity {
 				updateScreenInfo();
 			}
 			else if (action.equals("launch-test")) {
-				algorithm = msg.getData().getInt("algorithm");
+				algorithm = DspThread.AlgorithmEnum.values()[msg.getData().getInt("algorithm")];
 				blockSize = msg.getData().getInt("block-size");
 				filterSize = msg.getData().getInt("filter-size");
 				maxDspCycles = msg.getData().getInt("max-dsp-cycles");
