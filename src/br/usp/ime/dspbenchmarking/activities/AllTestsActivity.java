@@ -15,10 +15,12 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
+import android.util.Pair;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 import br.usp.ime.dspbenchmarking.R;
+import br.usp.ime.dspbenchmarking.algorithms.DspAlgorithm;
 import br.usp.ime.dspbenchmarking.threads.DspThread;
 
 /**
@@ -56,7 +58,7 @@ public class AllTestsActivity extends Activity {
 	private final int END_BLOCK_SIZE = (int) Math.pow(2,13);
 
 	// Number of algorithms tested
-	private final int ALGORITHMS_TESTED = 8;
+	private final int ALGORITHMS_TESTED = DspThread.AlgorithmEnum.__NUM_ALGORITHMS.ordinal();
 	// Variables for setting views
 	protected final double LOG2 = Math.log(2);
 	protected final int LOG_START_BLOCK_SIZE = (int) Math.log(START_BLOCK_SIZE);
@@ -68,7 +70,6 @@ public class AllTestsActivity extends Activity {
 	// Variables for tests
 	private java.io.InputStream inputStream;
 	int blockSize;
-	int algorithm;
 	protected int maxDspCycles;
 	protected int stressParameter;  // in case the test is a stress test.
 	private final int MAX_DSP_CYCLES = 1000;
@@ -91,6 +92,9 @@ public class AllTestsActivity extends Activity {
 	// Threads
 	private TestControlThread mt;
 	protected DspThread dt;
+	
+	private DspThread.AlgorithmEnum algorithm = DspThread.AlgorithmEnum.LOOPBACK;
+	private DspThread.AlgorithmEnum lastAlg   = DspThread.AlgorithmEnum.__NUM_ALGORITHMS;
 
 	/*************************************************************************
 	 * Constructor
@@ -171,25 +175,9 @@ public class AllTestsActivity extends Activity {
 	/**
 	 * Update screen with test information.
 	 */
-	private int lastAlg = -1;
 	protected void updateScreenInfo() {
-		if (algorithm != lastAlg) {
-			if (algorithm == 0)
-				algorithmName.setText("Loopback  ");
-			else if (algorithm == 1)
-				algorithmName.setText("Reverb  ");
-			else if (algorithm == 2)
-				algorithmName.setText("FFT  ");
-			else if (algorithm == 3)
-				algorithmName.setText("Convolution  ");
-			else if (algorithm == 4)
-				algorithmName.setText("Additive Synthesis (sine)  ");
-			else if (algorithm == 5)
-				algorithmName.setText("Additive Synthesis (linear)  ");
-			else if (algorithm == 6)
-				algorithmName.setText("Additive Synthesis (cubic)  ");
-			else if (algorithm == 7)
-				algorithmName.setText("Additive Synthesis (truncated)  ");
+		if (algorithm != lastAlg) {			
+			algorithmName.setText(dt.getAlgorithmNameById(algorithm) + " ");
 			lastAlg = algorithm;
 		}
 		algorithmName.setText(dt.getAlgorithmName());
@@ -296,11 +284,12 @@ public class AllTestsActivity extends Activity {
 			String action = msg.getData().getString(MESSAGE_ACTION);
 
 			Log.i("MSG HANDLER", "Received control message, will now act...");
+
 			Log.i("MSG HANDLER", "Acquired lock.");
 			// launch a new test
 			if (action.equals(MESSAGE_LAUNCH_TEST)) {
 				Log.i("MSG HANDLER", "Launching new test.");
-				algorithm = msg.getData().getInt(MESSAGE_ALGORITHM);
+				algorithm = DspThread.AlgorithmEnum.values()[msg.getData().getInt(MESSAGE_ALGORITHM)];
 				blockSize = msg.getData().getInt(MESSAGE_BLOCK_SIZE);
 				maxDspCycles = msg.getData().getInt(MESSAGE_MAX_DSP_CYCLES);
 				stressParameter = msg.getData().getInt(MESSAGE_STRESS_PARAM);
@@ -462,38 +451,41 @@ public class AllTestsActivity extends Activity {
 
 			// keep track of time
 			long startTime = SystemClock.uptimeMillis();
+            int algorithm_count = 0;
 
 			/*************************************************************
 			 * Phase 1: Loopback, Reverb and FFT algorithms.
 			 ************************************************************/
-			int startAlgorithm = 0; // Loopback
-			int endAlgorithm = 2; // FFT
-
-			// Iterate through algorithms
-			for (algorithm = startAlgorithm; algorithm <= endAlgorithm; algorithm++) {
-				Log.i("TESTS PHASE 1", "Starting test with algorithm "+algorithm+".");
-				// Iterate through power of 2 blocks
+			
+			DspThread.AlgorithmEnum phase_1[] = {
+					DspThread.AlgorithmEnum.LOOPBACK,
+					DspThread.AlgorithmEnum.REVERB,
+					DspThread.AlgorithmEnum.FFT_ALGORITHM,
+					DspThread.AlgorithmEnum.FFTW_MONO, 
+					DspThread.AlgorithmEnum.FFTW_MULTI,
+					DspThread.AlgorithmEnum.DOUBLE_FFT_1T,
+					DspThread.AlgorithmEnum.DOUBLE_FFT_2T
+			};
+			
+			DspThread.AlgorithmEnum phase_2[] = {
+					DspThread.AlgorithmEnum.CONVOLUTION, 
+					DspThread.AlgorithmEnum.ADD_SYNTH_SINE,
+					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_LINEAR,
+					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_CUBIC, 
+					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_TRUNCATED
+			};
+			
+			for (DspThread.AlgorithmEnum a : phase_1) {
+				algorithm_count++;
 				for (blockSize = START_BLOCK_SIZE; blockSize <= END_BLOCK_SIZE; blockSize *= 2) {	
 					Log.i("TESTS PHASE 1", "Starting test with block size " + blockSize+".");
-
-					// limit number of DSP cycles, depending on the block
-					// size. This is so that tests do not run for a
-					// extremely large period of time.
-					/*if (blockSize <= 64)
-						maxDspCycles = 5000;
-					else if (blockSize <= 512)
-						maxDspCycles = 1000;
-					else if (blockSize <= 2048)
-						maxDspCycles = 500;
-					else
-						maxDspCycles = 100;*/
-
+					
 					maxDspCycles = 100;
 
 					// Send message for starting a new test
 					if (controlThreadRunning)
-						sendMessage(MESSAGE_LAUNCH_TEST, blockSize, algorithm, maxDspCycles, -1, -1);
-
+						sendMessage(MESSAGE_LAUNCH_TEST, blockSize, a.ordinal(), maxDspCycles, -1, -1);
+					
 					Log.i("TESTS PHASE 1", "Wait for test to end...");
 					// Wait for tests to end
 					while (controlThreadRunning && !dt.isSuspended())
@@ -516,17 +508,17 @@ public class AllTestsActivity extends Activity {
 					}
 
 					if (controlThreadRunning)
-						sendMessage(MESSAGE_STORE_RESULTS, -1, algorithm, -1,
+						sendMessage(MESSAGE_STORE_RESULTS, -1, a.ordinal(), -1,
 								SystemClock.uptimeMillis() - startTime, -1);
 
 					// increase status bar
-					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/ALGORITHMS_TESTED);
+					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm_count*totalProgress/ALGORITHMS_TESTED);
 					progressBar
 					.setProgress((int)((actualProgress / totalProgress) * 100));
 
 					// break if thread was interrupted.
 					if (!controlThreadRunning)
-						break;
+						break;					
 				}
 
 				// break if thread was interrupted.
@@ -534,16 +526,13 @@ public class AllTestsActivity extends Activity {
 					break;
 			}
 
-
 			/*************************************************************
 			 * Phase 2: Convolution and additive synthesis.
 			 ************************************************************/
 
-			startAlgorithm = 3;	// Convolution
-			endAlgorithm = 7;	// Additive Synthesis (truncated)
-
-			for (algorithm = startAlgorithm; algorithm <= endAlgorithm; algorithm++) {
-				Log.i("TESTS PHASE 2", "Starting with algorithm "+algorithm+".");
+			for (DspThread.AlgorithmEnum a : phase_2) {
+				algorithm_count++;
+				Log.i("TESTS PHASE 2", "Starting with algorithm "+a+".");
 				for (blockSize = START_BLOCK_SIZE; blockSize <= END_BLOCK_SIZE; blockSize *= 2) {
 					Log.i("TESTS PHASE 2", "Starting with block size "+blockSize+".");
 
@@ -555,7 +544,7 @@ public class AllTestsActivity extends Activity {
 					// invariant: the device performs well on filters with m coefficients
 					// and bad with filters with M coefficients
 					while(m<M-1) {
-						Log.i("TESTS PHASE 2", "Starting new stress-test with m="+m+", M="+M+".");
+						Log.i("TESTS PHASE 3", "Starting new stress-test with m="+m+", M="+M+".");
 
 						// for screen preview
 						//eme = m;
@@ -569,48 +558,15 @@ public class AllTestsActivity extends Activity {
 							stressParam *= 2;
 						else
 							stressParam = (int) (m + ((double) (M-m) / 2));
-
-						// calc max dsp cycles
-						/*if (blockSize <= 64)
-							maxDspCycles = 5000;
-						else if (blockSize <= 512) {
-							int max_size = 1000;
-							if (M-m <= 8)
-								maxDspCycles = max_size;
-							else if (M-m <= 32)
-								maxDspCycles = max_size;
-							else
-								maxDspCycles = max_size;
-						}
-						else if (blockSize <= 2048) {
-							int max_size = 500;
-							if (M-m <= 8)
-								maxDspCycles = max_size;
-							else if (M-m <= 32)
-								maxDspCycles = max_size/2;
-							else
-								maxDspCycles = max_size/5;
-						}
-						else {
-							int max_size = 100;
-							if (M-m <= 8)
-								maxDspCycles = max_size;
-							else if (M-m <= 32)
-								maxDspCycles = max_size/2;
-							else
-								maxDspCycles = max_size/2;
-						}*/
+						
 						maxDspCycles = 100;
-						//if (blockSize >= 2048)
-						//	maxDspCycles = 50;
-
 
 						//===============================================
 						// run test
 						//===============================================
 						// launch test
 						if (controlThreadRunning)
-							sendMessage(MESSAGE_LAUNCH_TEST, blockSize, algorithm, maxDspCycles, -1, stressParam);
+							sendMessage(MESSAGE_LAUNCH_TEST, blockSize, a.ordinal(), maxDspCycles, -1, stressParam);
 
 						// wait for test to end
 						while (controlThreadRunning && !dt.isSuspended()) {
@@ -654,7 +610,7 @@ public class AllTestsActivity extends Activity {
 					if (controlThreadRunning)
 						sendMessage(MESSAGE_STORE_RESULTS, -1, -1, -1, SystemClock.uptimeMillis() - startTime, m);
 
-					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/ALGORITHMS_TESTED);
+					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm_count*totalProgress/ALGORITHMS_TESTED);
 					progressBar.setProgress(((int)((actualProgress / totalProgress) * 100)));
 
 					// break if thread was interrupted.

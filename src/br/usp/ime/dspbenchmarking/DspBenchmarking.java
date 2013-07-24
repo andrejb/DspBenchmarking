@@ -1,13 +1,13 @@
 package br.usp.ime.dspbenchmarking;
 
-import br.usp.ime.dspbenchmarking.activities.AllTestsActivity;
-import br.usp.ime.dspbenchmarking.activities.LiveActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import br.usp.ime.dspbenchmarking.activities.AllTestsActivity;
+import br.usp.ime.dspbenchmarking.activities.LiveActivity;
 
 
 /**
@@ -40,8 +40,10 @@ public class DspBenchmarking extends Activity {
 		// Prevent from locking
 	    this.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 	    // Set view
+
 	    setContentView(R.layout.main);
 	    // Hide airplane mode warning.
+
 	    textAirplaneMode = (TextView) findViewById(R.id.textAirplaneMode);
 	    textAirplaneMode.setVisibility(View.GONE);
     }

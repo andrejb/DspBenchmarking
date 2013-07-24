@@ -27,8 +27,13 @@ public class BenchmarkActivity extends TestActivity {
 	// Test limits
 	static final int START_BLOCK_SIZE = (int) Math.pow(2,4);
 	static final int END_BLOCK_SIZE = (int) Math.pow(2,13);
-	static final int START_ALGORITHM = 0;
-	static final int END_ALGORITHM = 2;
+	//static final int START_ALGORITHM = 0;
+	//static final int END_ALGORITHM = 2;
+	private DspThread.AlgorithmEnum algorithms_test[] = {
+		DspThread.AlgorithmEnum.LOOPBACK,
+		DspThread.AlgorithmEnum.REVERB,
+		DspThread.AlgorithmEnum.FFT_ALGORITHM
+	};
 	
 	protected final int LOG_START_BLOCK_SIZE = (int) Math.log(START_BLOCK_SIZE);
 	protected double totalProgress = ((Math.log(END_BLOCK_SIZE) - LOG_START_BLOCK_SIZE) / LOG2 + 1) * 3;
@@ -172,7 +177,10 @@ public class BenchmarkActivity extends TestActivity {
 
 				//for (int i=0; i<3; i++)
 				// Iterate through power of 2 blocks
-				for (algorithm = START_ALGORITHM; algorithm <= END_ALGORITHM; algorithm++) {
+				int algorithm_count = 0;
+				for (DspThread.AlgorithmEnum a : algorithms_test) {
+					algorithm = a;
+					algorithm_count++;
 					// Iterate through algorithms					
 					for (blockSize = START_BLOCK_SIZE; blockSize <= END_BLOCK_SIZE; blockSize *= 2) {	
 						Log.i("DSP TEST", "init algorithm " + algorithm);
@@ -191,7 +199,7 @@ public class BenchmarkActivity extends TestActivity {
 						b = new Bundle();
 						b.putString("action", "launch-test");
 						b.putInt("block-size", blockSize);
-						b.putInt("algorithm", algorithm);
+						b.putInt("algorithm", algorithm.ordinal());
 						//b.putInt("max-dsp-cycles", MAX_DSP_CYCLES);
 						msg.setData(b);
 						mHandler.sendMessage(msg);
@@ -242,7 +250,7 @@ public class BenchmarkActivity extends TestActivity {
 						mHandler.sendMessage(msg);
 
 						// increase status bar
-						double actualProgress = ((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm*totalProgress/3;
+						double actualProgress = ((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm_count*totalProgress/3;
 						progressBar
 						.setProgress((int)((actualProgress / totalProgress) * 100));
 					}
@@ -280,7 +288,7 @@ public class BenchmarkActivity extends TestActivity {
 			if (action.equals("finish-tests"))
 				finishTests();
 			else if (action.equals("launch-test")) {
-				algorithm = msg.getData().getInt("algorithm");
+				algorithm = DspThread.AlgorithmEnum.values()[msg.getData().getInt("algorithm")];
 				blockSize = msg.getData().getInt("block-size");
 				updateScreenInfo();
 				launchTest();

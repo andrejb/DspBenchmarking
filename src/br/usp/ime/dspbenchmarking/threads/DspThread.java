@@ -2,6 +2,8 @@ package br.usp.ime.dspbenchmarking.threads;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.EnumMap;
+import java.util.HashMap;
 
 import br.usp.ime.dspbenchmarking.algorithms.AdditiveSynthesisLookupTableTruncated;
 import br.usp.ime.dspbenchmarking.algorithms.AdditiveSynthesisSine;
@@ -13,6 +15,10 @@ import br.usp.ime.dspbenchmarking.algorithms.Loopback;
 import br.usp.ime.dspbenchmarking.algorithms.Reverb;
 import br.usp.ime.dspbenchmarking.algorithms.Convolution;
 import br.usp.ime.dspbenchmarking.algorithms.StressAlgorithm;
+import br.usp.ime.dspbenchmarking.algorithms.fftw.FFTWAlgorithm;
+import br.usp.ime.dspbenchmarking.algorithms.fftw.FFTWMultithreadAlgorithm;
+import br.usp.ime.dspbenchmarking.algorithms.jtransforms.fft.DoubleFFT_1D1TAlgorithm;
+import br.usp.ime.dspbenchmarking.algorithms.jtransforms.fft.DoubleFFT_1D2TAlgorithm;
 import br.usp.ime.dspbenchmarking.streams.AudioStream;
 import br.usp.ime.dspbenchmarking.streams.MicStream;
 import br.usp.ime.dspbenchmarking.streams.WavStream;
@@ -43,7 +49,7 @@ public class DspThread extends Thread {
 	private final int sampleRate = 44100; // the system sample rate
 	private int blockSize; // the block period in samples
 	private DspAlgorithm dspAlgorithm; // the chosen algorithm
-	private int algorithm;
+	private DspThread.AlgorithmEnum algorithm;
 	private double parameter1;
 	private int maxDspCycles;  // 0 means infinite
 	private final int DEFAULT_BLOCK_SIZE = 64;
@@ -83,6 +89,15 @@ public class DspThread extends Thread {
 
 	// DSP algorithms
 	private DspAlgorithm[] algorithms;
+	
+	public enum AlgorithmEnum { LOOPBACK, REVERB, FFT_ALGORITHM, CONVOLUTION, ADD_SYNTH_SINE,
+		ADD_SYNTH_LOOKUP_TABLE_LINEAR, ADD_SYNTH_LOOKUP_TABLE_CUBIC, 
+		ADD_SYNTH_LOOKUP_TABLE_TRUNCATED,
+		FFTW_MONO, FFTW_MULTI, DOUBLE_FFT_1T, DOUBLE_FFT_2T,
+		__NUM_ALGORITHMS
+	};
+	
+	private EnumMap<AlgorithmEnum, DspAlgorithm> map_algorithm;
 
 
 	/************************************************************************
@@ -98,8 +113,23 @@ public class DspThread extends Thread {
 		android.os.Process
 		.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
+		map_algorithm = new EnumMap<DspThread.AlgorithmEnum, DspAlgorithm>(AlgorithmEnum.class);
+		
+		map_algorithm.put(AlgorithmEnum.LOOPBACK, new Loopback(sampleRate, DEFAULT_BLOCK_SIZE));
+		map_algorithm.put(AlgorithmEnum.REVERB, new Reverb(sampleRate, DEFAULT_BLOCK_SIZE));
+		map_algorithm.put(AlgorithmEnum.FFT_ALGORITHM, new FftAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE));
+		map_algorithm.put(AlgorithmEnum.CONVOLUTION, new Convolution(sampleRate, DEFAULT_BLOCK_SIZE, 1));
+		map_algorithm.put(AlgorithmEnum.ADD_SYNTH_SINE, new AdditiveSynthesisSine(sampleRate, DEFAULT_BLOCK_SIZE, 1));
+		map_algorithm.put(AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_LINEAR, new AdditiveSynthesisLookupTableLinear(sampleRate, DEFAULT_BLOCK_SIZE, 1));
+		map_algorithm.put(AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_CUBIC, new AdditiveSynthesisLookupTableCubic(sampleRate, DEFAULT_BLOCK_SIZE, 1));
+		map_algorithm.put(AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_TRUNCATED, new AdditiveSynthesisLookupTableTruncated(sampleRate, DEFAULT_BLOCK_SIZE, 1));
+		map_algorithm.put(AlgorithmEnum.FFTW_MONO, new FFTWAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE));
+		map_algorithm.put(AlgorithmEnum.FFTW_MULTI, new FFTWMultithreadAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE));
+		map_algorithm.put(AlgorithmEnum.DOUBLE_FFT_1T, new DoubleFFT_1D1TAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE));
+		map_algorithm.put(AlgorithmEnum.DOUBLE_FFT_2T, new DoubleFFT_1D2TAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE));
+		
 		// Instantiate algorithms
-		algorithms = new DspAlgorithm[8];
+		/*algorithms = new DspAlgorithm[10];
 		algorithms[0] = new Loopback(sampleRate, DEFAULT_BLOCK_SIZE);
 		algorithms[1] = new Reverb(sampleRate, DEFAULT_BLOCK_SIZE);
 		algorithms[2] = new FftAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE);
@@ -108,9 +138,11 @@ public class DspThread extends Thread {
 		algorithms[5] = new AdditiveSynthesisLookupTableLinear(sampleRate, DEFAULT_BLOCK_SIZE, 1);
 		algorithms[6] = new AdditiveSynthesisLookupTableCubic(sampleRate, DEFAULT_BLOCK_SIZE, 1);
 		algorithms[7] = new AdditiveSynthesisLookupTableTruncated(sampleRate, DEFAULT_BLOCK_SIZE, 1);
+		algorithms[8] = new FFTWAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE);
+		algorithms[9] = new FFTWMultithreadAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE);*/
 
 		// set default DSP values
-		setAlgorithm(0);  // Loopback
+		setAlgorithm(AlgorithmEnum.LOOPBACK);  // Loopback
 		setBlockSize(64);  // this must be done after we have set an algorithm
 		setAudioSource(AUDIO_SOURCE_MIC);
 		setMaxDspCycles(0); // run indefinitelly
@@ -222,17 +254,19 @@ public class DspThread extends Thread {
 	 *   3. PhaseVocoder.
 	 *   4. StressAlgorithm.
 	 *   5. Additive Synthesis.
+	 *   8. FFTW monothread.
+	 *   9. FFTW multithread.
 	 *   
 	 * @param alg The number of the algorithm.
 	 */
-	public void setAlgorithm(int alg) {
+	public void setAlgorithm(DspThread.AlgorithmEnum alg) {
 		// set the DSP algorithm
 		Log.i("DSP", "Defining new algorithm...");
 		algorithm = alg;
-		dspAlgorithm = algorithms[algorithm];
+		dspAlgorithm = map_algorithm.get(alg);
 		dspAlgorithm.setBlockSize(blockSize);
 		Log.i("DSP", "Algorithm set: "+String.valueOf(dspAlgorithm)+".");
-		if (algorithm >= 3) {
+		if (map_algorithm.get(alg) instanceof StressAlgorithm) {
 			StressAlgorithm stressAlg = (StressAlgorithm) dspAlgorithm;
 			stressAlg.setStressParameter(stressParameter);
 		}
@@ -387,8 +421,12 @@ public class DspThread extends Thread {
 	/**
 	 * @return The current algorithm.
 	 */
-	public int getAlgorithm() {
+	public DspThread.AlgorithmEnum getAlgorithm() {
 		return algorithm;
+	}
+	
+	public String getAlgorithmNameById(DspThread.AlgorithmEnum id) {
+		return map_algorithm.get(id).getAlgorithmName();
 	}
 
 	/************************************************************************

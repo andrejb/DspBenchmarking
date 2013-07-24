@@ -33,6 +33,10 @@
         <item >Additive Synthesis (linear interp)</item>
         <item >Additive Synthesis (cubic interp)</item>
         <item >Additive Synthesis (truncated)</item>
+        <item >FFTW - monothread</item>
+        <item >FFTW - multithread</item>
+        <item >DoubleFFT - monothread</item>
+        <item >DoubleFFT - multithread</item>
     </string-array>
     
   	<string-array name="block_size_array">
@@ -50,6 +54,11 @@
         <item>2048</item>
         <item>4096</item>
         <item>8192</item>
+        <item>16384</item>
+        <item>32768</item>
+        <item>65536</item>
+        <item>131072</item>
+        <item>262144</item>
     </string-array>
     
   	<string-array name="source_array">
