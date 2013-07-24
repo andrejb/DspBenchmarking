@@ -458,7 +458,9 @@ public class AllTestsActivity extends Activity {
 					DspThread.AlgorithmEnum.REVERB,
 					DspThread.AlgorithmEnum.FFT_ALGORITHM,
 					DspThread.AlgorithmEnum.FFTW_MONO, 
-					DspThread.AlgorithmEnum.FFTW_MULTI
+					DspThread.AlgorithmEnum.FFTW_MULTI,
+					DspThread.AlgorithmEnum.DOUBLE_FFT_1T,
+					DspThread.AlgorithmEnum.DOUBLE_FFT_2T
 			};
 			
 			DspThread.AlgorithmEnum phase_2[] = {
