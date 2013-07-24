@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.ProgressBar;
@@ -55,7 +56,7 @@ public class AllTestsActivity extends Activity {
 	// Block size limits
 	private final int START_BLOCK_SIZE = (int) Math.pow(2,4);
 	private final int END_BLOCK_SIZE = (int) Math.pow(2,13);
-	
+
 	// Number of algorithms tested
 	private final int ALGORITHMS_TESTED = DspThread.AlgorithmEnum.__NUM_ALGORITHMS.ordinal();
 	// Variables for setting views
@@ -215,7 +216,7 @@ public class AllTestsActivity extends Activity {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		// Stop test control thread.
 		mt.stopControlThread();
 		// Suspend DSP
@@ -228,7 +229,7 @@ public class AllTestsActivity extends Activity {
 			Log.e("ERROR", "Thread was Interrupted");
 		}
 		releaseDspThread();
-		
+
 		// Reconfigure screen
 		workingBar.setVisibility(ProgressBar.INVISIBLE);
 		toggleTestsButton.setTextOff("Testes finalizados.");
@@ -283,47 +284,48 @@ public class AllTestsActivity extends Activity {
 			String action = msg.getData().getString(MESSAGE_ACTION);
 
 			Log.i("MSG HANDLER", "Received control message, will now act...");
-				Log.i("MSG HANDLER", "Acquired lock.");
-				// launch a new test
-				if (action.equals(MESSAGE_LAUNCH_TEST)) {
-					Log.i("MSG HANDLER", "Launching new test.");
-					algorithm = DspThread.AlgorithmEnum.values()[msg.getData().getInt(MESSAGE_ALGORITHM)];
-					blockSize = msg.getData().getInt(MESSAGE_BLOCK_SIZE);
-					maxDspCycles = msg.getData().getInt(MESSAGE_MAX_DSP_CYCLES);
-					stressParameter = msg.getData().getInt(MESSAGE_STRESS_PARAM);
-					updateScreenInfo();
-					launchTest();
-					Log.i("MSG HANDLER", "Finished launching new test.");
-				}
 
-				// release a test
-				else if (action.equals(MESSAGE_RELEASE_TEST)) {
-					Log.i("MSG HANDLER", "Releasing test.");
-					releaseTest();
-					Log.i("MSG HANDLER", "Finished releasing test.");
-				}
+			Log.i("MSG HANDLER", "Acquired lock.");
+			// launch a new test
+			if (action.equals(MESSAGE_LAUNCH_TEST)) {
+				Log.i("MSG HANDLER", "Launching new test.");
+				algorithm = DspThread.AlgorithmEnum.values()[msg.getData().getInt(MESSAGE_ALGORITHM)];
+				blockSize = msg.getData().getInt(MESSAGE_BLOCK_SIZE);
+				maxDspCycles = msg.getData().getInt(MESSAGE_MAX_DSP_CYCLES);
+				stressParameter = msg.getData().getInt(MESSAGE_STRESS_PARAM);
+				updateScreenInfo();
+				launchTest();
+				Log.i("MSG HANDLER", "Finished launching new test.");
+			}
 
-				// finish all tests
-				else if (action.equals(MESSAGE_FINISH_TESTS)) {
-					Log.i("MSG HANDLER", "Finishing tests.");
-					finishTests(msg.getData().getLong(MESSAGE_TOTAL_TIME));
-					sendResults("Test results");
-					Log.i("MSG HANDLER", "Finished finishing tests.");
-				}
+			// release a test
+			else if (action.equals(MESSAGE_RELEASE_TEST)) {
+				Log.i("MSG HANDLER", "Releasing test.");
+				releaseTest();
+				Log.i("MSG HANDLER", "Finished releasing test.");
+			}
 
-				// store results
-				else if (action.equals(MESSAGE_STORE_RESULTS)) {
-					Log.i("MSG HANDLER", "Storing results.");
-					storeResults(
-							msg.getData().getInt(MESSAGE_STRESS_PARAM),
-							msg.getData().getLong(MESSAGE_TOTAL_TIME));
-					Log.i("MSG HANDLER", "Finishing storing results.");
-				}
-				
-				// Release the control thread.
-				Log.i("MSG HANDLER", "Releasing control thread.");
-				Message reply = mt.cHandler.obtainMessage();
-				mt.cHandler.sendMessage(reply);
+			// finish all tests
+			else if (action.equals(MESSAGE_FINISH_TESTS)) {
+				Log.i("MSG HANDLER", "Finishing tests.");
+				finishTests(msg.getData().getLong(MESSAGE_TOTAL_TIME));
+				sendResults("Test results");
+				Log.i("MSG HANDLER", "Finished finishing tests.");
+			}
+
+			// store results
+			else if (action.equals(MESSAGE_STORE_RESULTS)) {
+				Log.i("MSG HANDLER", "Storing results.");
+				storeResults(
+						msg.getData().getInt(MESSAGE_STRESS_PARAM),
+						msg.getData().getLong(MESSAGE_TOTAL_TIME));
+				Log.i("MSG HANDLER", "Finishing storing results.");
+			}
+
+			// Release the control thread.
+			Log.i("MSG HANDLER", "Releasing control thread.");
+			Message reply = mt.cHandler.obtainMessage();
+			mt.cHandler.sendMessage(reply);
 		}
 	};
 
@@ -341,7 +343,9 @@ public class AllTestsActivity extends Activity {
 	private void storeResults(int stressParam, long totalTime) {
 		String info = (new String(getDspThreadInfo(stressParam)));
 		// add test time
-		info += " " + String.format("%5.2f\n", ((float)(totalTime - lastTotalTime)/ 1000));
+		info += " " + String.format("%5.2f", ((float)(totalTime - lastTotalTime)/ 1000));
+		// add airplane mode info
+		info += " " + String.format("%d\n", this.isAirplaneModeOn() ? 1 : 0);
 		lastTotalTime = totalTime;
 		results += info;
 	}
@@ -511,12 +515,12 @@ public class AllTestsActivity extends Activity {
 					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm_count*totalProgress/ALGORITHMS_TESTED);
 					progressBar
 					.setProgress((int)((actualProgress / totalProgress) * 100));
-					
+
 					// break if thread was interrupted.
 					if (!controlThreadRunning)
 						break;					
 				}
-				
+
 				// break if thread was interrupted.
 				if (!controlThreadRunning)
 					break;
@@ -596,7 +600,7 @@ public class AllTestsActivity extends Activity {
 						// release test
 						if (controlThreadRunning)
 							sendMessage(MESSAGE_RELEASE_TEST, -1, -1, -1, SystemClock.uptimeMillis() - startTime, -1);
-						
+
 						// break if thread was interrupted.
 						if (!controlThreadRunning)
 							break;
@@ -608,7 +612,7 @@ public class AllTestsActivity extends Activity {
 
 					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + algorithm_count*totalProgress/ALGORITHMS_TESTED);
 					progressBar.setProgress(((int)((actualProgress / totalProgress) * 100)));
-					
+
 					// break if thread was interrupted.
 					if (!controlThreadRunning)
 						break;
@@ -623,7 +627,7 @@ public class AllTestsActivity extends Activity {
 			progressBar.setProgress(100);
 
 			// Turn off when done.
-			
+
 			if (controlThreadRunning)
 				sendMessage(MESSAGE_FINISH_TESTS, -1, -1, -1, SystemClock.uptimeMillis() - startTime, -1);
 		}
@@ -662,7 +666,7 @@ public class AllTestsActivity extends Activity {
 		sbuf.append("# time: " + Build.TIME + "\n");
 		sbuf.append("# type: " + Build.TYPE + "\n");
 		sbuf.append("# user: " + Build.USER + "\n\n");
-		sbuf.append("# bsize time  cbt   readt sampread sampwrit blockper cbperiod perftime calltime stress testtime\n");
+		sbuf.append("# bsize time  cbt   readt sampread sampwrit blockper cbperiod perftime calltime stress testtime airplanemode\n");
 		return sbuf.toString();
 	}
 
@@ -715,6 +719,20 @@ public class AllTestsActivity extends Activity {
 			alert.show();
 		} else
 			AllTestsActivity.this.finish();
+	}
+
+
+	/**
+	 * Get the state of Airplane Mode.
+	 *
+	 * @param context
+	 * @return true if enabled.
+	 */
+	protected boolean isAirplaneModeOn() {
+		return Settings.System.getInt(
+				this.getApplicationContext().getContentResolver(),
+				Settings.System.AIRPLANE_MODE_ON, 0) != 0;
+
 	}
 
 }
