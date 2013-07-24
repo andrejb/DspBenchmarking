@@ -17,6 +17,8 @@ import br.usp.ime.dspbenchmarking.algorithms.Convolution;
 import br.usp.ime.dspbenchmarking.algorithms.StressAlgorithm;
 import br.usp.ime.dspbenchmarking.algorithms.fftw.FFTWAlgorithm;
 import br.usp.ime.dspbenchmarking.algorithms.fftw.FFTWMultithreadAlgorithm;
+import br.usp.ime.dspbenchmarking.algorithms.jtransforms.fft.DoubleFFT_1D1TAlgorithm;
+import br.usp.ime.dspbenchmarking.algorithms.jtransforms.fft.DoubleFFT_1D2TAlgorithm;
 import br.usp.ime.dspbenchmarking.streams.AudioStream;
 import br.usp.ime.dspbenchmarking.streams.MicStream;
 import br.usp.ime.dspbenchmarking.streams.WavStream;
@@ -91,7 +93,7 @@ public class DspThread extends Thread {
 	public enum AlgorithmEnum { LOOPBACK, REVERB, FFT_ALGORITHM, CONVOLUTION, ADD_SYNTH_SINE,
 		ADD_SYNTH_LOOKUP_TABLE_LINEAR, ADD_SYNTH_LOOKUP_TABLE_CUBIC, 
 		ADD_SYNTH_LOOKUP_TABLE_TRUNCATED,
-		FFTW_MONO, FFTW_MULTI,
+		FFTW_MONO, FFTW_MULTI, DOUBLE_FFT_1T, DOUBLE_FFT_2T,
 		__NUM_ALGORITHMS
 	};
 	
@@ -123,6 +125,8 @@ public class DspThread extends Thread {
 		map_algorithm.put(AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_TRUNCATED, new AdditiveSynthesisLookupTableTruncated(sampleRate, DEFAULT_BLOCK_SIZE, 1));
 		map_algorithm.put(AlgorithmEnum.FFTW_MONO, new FFTWAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE));
 		map_algorithm.put(AlgorithmEnum.FFTW_MULTI, new FFTWMultithreadAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE));
+		map_algorithm.put(AlgorithmEnum.DOUBLE_FFT_1T, new DoubleFFT_1D1TAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE));
+		map_algorithm.put(AlgorithmEnum.DOUBLE_FFT_2T, new DoubleFFT_1D2TAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE));
 		
 		// Instantiate algorithms
 		/*algorithms = new DspAlgorithm[10];
