@@ -52,8 +52,9 @@ public class AllTestsActivity extends Activity {
 	protected TextView blockSizeView = null;
 
 	// Block size limits
-	private final int START_BLOCK_SIZE = (int) Math.pow(2,4);
-	private final int END_BLOCK_SIZE = (int) Math.pow(2,13);
+	private final int START_BLOCK_SIZE = (int) Math.pow(2,4);	// 2^4 = 16
+	private final int END_BLOCK_SIZE = (int) Math.pow(2,13);	// 2^13 = 8192
+	private final int MAX_DSP_CYCLES = 100;
 
 	// Test results are stored in this variable
 	String results = getResultsHeader();
@@ -63,7 +64,6 @@ public class AllTestsActivity extends Activity {
 	int blockSize;
 	protected int maxDspCycles;
 	protected int stressParameter;  // in case the test is a stress test.
-	private final int MAX_DSP_CYCLES = 1000;
 
 	// Time keeping
 	private long lastTotalTime = 0;
@@ -346,11 +346,11 @@ public class AllTestsActivity extends Activity {
 		// add dsp thread statistics
 		info += " " + (new String(getDspThreadInfo()));
 		// add stress param
-		info += String.format(" %d", stressParam);
-		// add test time
-		info += String.format(" %5.2f", ((float)(totalTime - lastTotalTime)/ 1000));
+		info += String.format("\t%d", stressParam);
 		// add airplane mode info
-		info += String.format(" %d\n", this.isAirplaneModeOn() ? 1 : 0);
+		info += String.format("\t%d", this.isAirplaneModeOn() ? 1 : 0);
+		// add test time
+		info += String.format("\t%5.2f\n", ((float)(totalTime - lastTotalTime)/ 1000));
 		lastTotalTime = totalTime;
 		results += info;
 	}
@@ -405,7 +405,7 @@ public class AllTestsActivity extends Activity {
 		 * @param algorithm
 		 * @param maxDspCycles
 		 */
-		private void sendMessage(String action, int bSize, int alg,
+		private void sendMessage(String action, int bSize, DspThread.AlgorithmEnum alg,
 				int mdCycles, long totalTime, int stressParam) {
 			Message msg = mHandler.obtainMessage();
 			Bundle b = new Bundle();
@@ -413,8 +413,8 @@ public class AllTestsActivity extends Activity {
 			if (bSize >= 0) {
 				b.putInt(MESSAGE_BLOCK_SIZE, bSize);
 			}
-			if (alg >= 0) {
-				b.putInt(MESSAGE_ALGORITHM, alg);
+			if (alg != null) {
+				b.putInt(MESSAGE_ALGORITHM, alg.ordinal());
 			}
 			if (mdCycles>= 0) {
 				b.putInt(MESSAGE_MAX_DSP_CYCLES, mdCycles);
@@ -459,7 +459,7 @@ public class AllTestsActivity extends Activity {
             int algorithm_count = 0;
 
 			/*************************************************************
-			 * Phase 1: Loopback, Reverb and FFT algorithms.
+			 * Phase 1: Measurement of algorithm time.
 			 ************************************************************/
 			
 			DspThread.AlgorithmEnum phase_1[] = {
@@ -497,7 +497,7 @@ public class AllTestsActivity extends Activity {
 
 					// Send message for starting a new test
 					if (controlThreadRunning)
-						sendMessage(MESSAGE_LAUNCH_TEST, blockSize, a.ordinal(), maxDspCycles, -1, -1);
+						sendMessage(MESSAGE_LAUNCH_TEST, blockSize, a, maxDspCycles, -1, -1);
 					
 					Log.i("TESTS PHASE 1", "Wait for test to end...");
 					// Wait for tests to end
@@ -512,7 +512,7 @@ public class AllTestsActivity extends Activity {
 
 					// Sends message for releasing the test
 					if (controlThreadRunning)
-						sendMessage(MESSAGE_RELEASE_TEST, -1, -1, -1, -1, -1);
+						sendMessage(MESSAGE_RELEASE_TEST, -1, null, -1, -1, -1);
 
 					try {
 						Thread.sleep(1000);
@@ -521,7 +521,7 @@ public class AllTestsActivity extends Activity {
 					}
 
 					if (controlThreadRunning)
-						sendMessage(MESSAGE_STORE_RESULTS, -1, a.ordinal(), -1,
+						sendMessage(MESSAGE_STORE_RESULTS, -1, a, -1,
 								SystemClock.uptimeMillis() - startTime, -1);
 
 					// increase status bar
@@ -540,7 +540,7 @@ public class AllTestsActivity extends Activity {
 			}
 
 			/*************************************************************
-			 * Phase 2: Convolution and additive synthesis.
+			 * Phase 2: Estimation of maximum parameter for algorithms.
 			 ************************************************************/
 
 			for (DspThread.AlgorithmEnum a : phase_2) {
@@ -572,14 +572,14 @@ public class AllTestsActivity extends Activity {
 						else
 							stressParam = (int) (m + ((double) (M-m) / 2));
 						
-						maxDspCycles = 100;
+						maxDspCycles = MAX_DSP_CYCLES;
 
 						//===============================================
 						// run test
 						//===============================================
 						// launch test
 						if (controlThreadRunning)
-							sendMessage(MESSAGE_LAUNCH_TEST, blockSize, a.ordinal(), maxDspCycles, -1, stressParam);
+							sendMessage(MESSAGE_LAUNCH_TEST, blockSize, a, maxDspCycles, -1, stressParam);
 
 						// wait for test to end
 						while (controlThreadRunning && !dt.isSuspended()) {
@@ -612,7 +612,7 @@ public class AllTestsActivity extends Activity {
 						//===============================================
 						// release test
 						if (controlThreadRunning)
-							sendMessage(MESSAGE_RELEASE_TEST, -1, -1, -1, SystemClock.uptimeMillis() - startTime, -1);
+							sendMessage(MESSAGE_RELEASE_TEST, -1, null, -1, SystemClock.uptimeMillis() - startTime, -1);
 
 						// break if thread was interrupted.
 						if (!controlThreadRunning)
@@ -621,7 +621,7 @@ public class AllTestsActivity extends Activity {
 
 					// store results
 					if (controlThreadRunning)
-						sendMessage(MESSAGE_STORE_RESULTS, -1, -1, -1, SystemClock.uptimeMillis() - startTime, m);
+						sendMessage(MESSAGE_STORE_RESULTS, -1, a, -1, SystemClock.uptimeMillis() - startTime, m);
 
 					double actualProgress = (((Math.log(blockSize) - LOG_START_BLOCK_SIZE) / LOG2)  + (algorithm_count-1)*totalProgress/ALGORITHMS_TESTED);
 					progressBar.setProgress(((int)((actualProgress / totalProgress) * 100)));
@@ -642,7 +642,7 @@ public class AllTestsActivity extends Activity {
 			// Turn off when done.
 
 			if (controlThreadRunning)
-				sendMessage(MESSAGE_FINISH_TESTS, -1, -1, -1, SystemClock.uptimeMillis() - startTime, -1);
+				sendMessage(MESSAGE_FINISH_TESTS, -1, null, -1, SystemClock.uptimeMillis() - startTime, -1);
 		}
 	}
 
@@ -682,7 +682,7 @@ public class AllTestsActivity extends Activity {
 		for (DspThread.AlgorithmEnum a : DspThread.AlgorithmEnum.values())
 			sbuf.append("# "+a.ordinal()+" "+a+"\n");
 		sbuf.append("\n");
-		sbuf.append("# bsize time  cbt   readt sampread sampwrit blockper cbperiod perftime calltime stress testtime airplanemode\n");
+		sbuf.append("# bsize time  cbt   readt sampread sampwrit blockper cbperiod perftime calltime stress airplanemode testtime\n");
 		return sbuf.toString();
 	}
 
@@ -694,16 +694,16 @@ public class AllTestsActivity extends Activity {
 	protected String getDspThreadInfo() {
 		//String output = dt.getAlgorithm() + " "; 							// 1  - alg
 		String output = ""; 												// 1  - alg
-		output += String.format(" %d", dt.getBlockSize()); 					// 2  - bsize
-		output += String.format(" %.0f", dt.getElapsedTime()); 				// 3  - time
-		output += String.format(" %d", dt.getCallbackTicks());				// 4  - cbt
-		output += String.format(" %d", dt.getReadTicks());					// 5  - read tics
-		output += String.format(" %.2f", dt.getSampleReadMeanTime());		// 6  - sample read
-		output += String.format(" %.2f", dt.getSampleWriteMeanTime());		// 7  - sample write
-		output += String.format(" %.2f", dt.getBlockPeriod());				// 8  - block period (calculated)
-		output += String.format(" %.2f", dt.getCallbackPeriodMeanTime());	// 9  - callback period
-		output += String.format(" %.2f", dt.getDspPerformMeanTime());		// 10 - perform time
-		output += String.format(" %.2f", dt.getDspCallbackMeanTime());		// 11 - callback time
+		output += String.format("\t%d", dt.getBlockSize()); 					// 2  - bsize
+		output += String.format("\t%.0f", dt.getElapsedTime()); 				// 3  - time
+		output += String.format("\t%d", dt.getCallbackTicks());				// 4  - cbt
+		output += String.format("\t%d", dt.getReadTicks());					// 5  - read tics
+		output += String.format("\t%.2f", dt.getSampleReadMeanTime());		// 6  - sample read
+		output += String.format("\t%.2f", dt.getSampleWriteMeanTime());		// 7  - sample write
+		output += String.format("\t%.2f", dt.getBlockPeriod());				// 8  - block period (calculated)
+		output += String.format("\t%.2f", dt.getCallbackPeriodMeanTime());	// 9  - callback period
+		output += String.format("\t%.2f", dt.getDspPerformMeanTime());		// 10 - perform time
+		output += String.format("\t%.2f", dt.getDspCallbackMeanTime());		// 11 - callback time
 		return output;
 	}
 
