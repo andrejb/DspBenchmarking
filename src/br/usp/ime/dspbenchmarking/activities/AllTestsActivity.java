@@ -61,9 +61,6 @@ public class AllTestsActivity extends Activity {
 
 	// Variables for tests
 	private java.io.InputStream inputStream;
-	int blockSize;
-	protected int maxDspCycles;
-	protected int stressParameter;  // in case the test is a stress test.
 
 	// Time keeping
 	private long lastTotalTime = 0;
@@ -85,7 +82,6 @@ public class AllTestsActivity extends Activity {
 	private TestControlThread mt;
 	protected DspThread dt;
 	
-	private DspThread.AlgorithmEnum algorithm = DspThread.AlgorithmEnum.LOOPBACK;
 
 	/*************************************************************************
 	 * Constructor
@@ -166,8 +162,8 @@ public class AllTestsActivity extends Activity {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		dt.setBlockSize(blockSize);
-		dt.setAlgorithm(algorithm);
+		dt.setBlockSize(START_BLOCK_SIZE);
+		dt.setAlgorithm(DspThread.AlgorithmEnum.LOOPBACK);
 		dt.setAudioSource(DspThread.AUDIO_SOURCE_WAV);
 		dt.setInputStream(inputStream);
 		dt.setMaxDspCycles(MAX_DSP_CYCLES);
@@ -178,7 +174,7 @@ public class AllTestsActivity extends Activity {
 	/**
 	 * Update screen with test information.
 	 */
-	protected void updateScreenInfo() {
+	protected void updateScreenInfo(DspThread.AlgorithmEnum algorithm, int blockSize) {
 		algorithmName.setText(dt.getAlgorithmNameById(algorithm) + " ");
 		blockSizeView.setText(String.valueOf(blockSize));
 	}
@@ -186,7 +182,7 @@ public class AllTestsActivity extends Activity {
 	/**
 	 * Launch a new test by configuring and resuming the DSP thread.
 	 */
-	protected void launchTest() {
+	protected void launchTest(DspThread.AlgorithmEnum algorithm, int blockSize, int maxDspCycles, int stressParameter) {
 		dt.setBlockSize(blockSize);
 		dt.setAlgorithm(algorithm);
 		dt.setMaxDspCycles(maxDspCycles);
@@ -288,12 +284,12 @@ public class AllTestsActivity extends Activity {
 			// launch a new test
 			if (action.equals(MESSAGE_LAUNCH_TEST)) {
 				Log.i("MSG HANDLER", "Launching new test.");
-				algorithm = DspThread.AlgorithmEnum.values()[msg.getData().getInt(MESSAGE_ALGORITHM)];
-				blockSize = msg.getData().getInt(MESSAGE_BLOCK_SIZE);
-				maxDspCycles = msg.getData().getInt(MESSAGE_MAX_DSP_CYCLES);
-				stressParameter = msg.getData().getInt(MESSAGE_STRESS_PARAM);
-				updateScreenInfo();
-				launchTest();
+				DspThread.AlgorithmEnum algorithm = DspThread.AlgorithmEnum.values()[msg.getData().getInt(MESSAGE_ALGORITHM)];
+				int blockSize = msg.getData().getInt(MESSAGE_BLOCK_SIZE);
+				int maxDspCycles = msg.getData().getInt(MESSAGE_MAX_DSP_CYCLES);
+				int stressParameter = msg.getData().getInt(MESSAGE_STRESS_PARAM);
+				updateScreenInfo(algorithm, blockSize);
+				launchTest(algorithm, blockSize, maxDspCycles, stressParameter);
 				Log.i("MSG HANDLER", "Finished launching new test.");
 			}
 
@@ -490,14 +486,12 @@ public class AllTestsActivity extends Activity {
 
 			for (DspThread.AlgorithmEnum a : phase_1) {
 				algorithm_count++;
-				for (blockSize = START_BLOCK_SIZE; blockSize <= END_BLOCK_SIZE; blockSize *= 2) {	
+				for (int blockSize = START_BLOCK_SIZE; blockSize <= END_BLOCK_SIZE; blockSize *= 2) {	
 					Log.i("TESTS PHASE 1", "Starting test with block size " + blockSize+".");
 					
-					maxDspCycles = 100;
-
 					// Send message for starting a new test
 					if (controlThreadRunning)
-						sendMessage(MESSAGE_LAUNCH_TEST, blockSize, a, maxDspCycles, -1, -1);
+						sendMessage(MESSAGE_LAUNCH_TEST, blockSize, a, MAX_DSP_CYCLES, -1, -1);
 					
 					Log.i("TESTS PHASE 1", "Wait for test to end...");
 					// Wait for tests to end
@@ -546,7 +540,7 @@ public class AllTestsActivity extends Activity {
 			for (DspThread.AlgorithmEnum a : phase_2) {
 				algorithm_count++;
 				Log.i("TESTS PHASE 2", "Starting with algorithm "+a+".");
-				for (blockSize = START_BLOCK_SIZE; blockSize <= END_BLOCK_SIZE; blockSize *= 2) {
+				for (int blockSize = START_BLOCK_SIZE; blockSize <= END_BLOCK_SIZE; blockSize *= 2) {
 					Log.i("TESTS PHASE 2", "Starting with block size "+blockSize+".");
 
 					int stressParam = 1;
@@ -572,14 +566,12 @@ public class AllTestsActivity extends Activity {
 						else
 							stressParam = (int) (m + ((double) (M-m) / 2));
 						
-						maxDspCycles = MAX_DSP_CYCLES;
-
 						//===============================================
 						// run test
 						//===============================================
 						// launch test
 						if (controlThreadRunning)
-							sendMessage(MESSAGE_LAUNCH_TEST, blockSize, a, maxDspCycles, -1, stressParam);
+							sendMessage(MESSAGE_LAUNCH_TEST, blockSize, a, MAX_DSP_CYCLES, -1, stressParam);
 
 						// wait for test to end
 						while (controlThreadRunning && !dt.isSuspended()) {
