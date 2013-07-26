@@ -25,9 +25,9 @@ import br.usp.ime.dspbenchmarking.threads.DspThread;
  * An activity that performs all tests in a device. Tests are divided in 2 phases:
  * 
  * 	 Phase 1: measurement of time taken to perform common tasks (loopback,
- *            FFT, IIR filtering).
+ *            FFT, IIR filtering, etc).
  *
- *   Phase 2: stress tests (convolution, additive synthesis). During this
+ *   Phase 2: stress tests (convolution, additive synthesis, etc). During this
  *            phase, each algorithm is run with increasing complexity until
  *            the device limit is reached (i.e. until the computation period
  *            becomes bigger than the theoretical DSP period). Then, a binary
@@ -99,28 +99,6 @@ public class AllTestsActivity extends Activity {
 		setContentView(R.layout.tests);
 		super.onCreate(savedInstanceState);
 
-		// Find toggle button
-		toggleTestsButton = (ToggleButton) findViewById(R.id.toggleTests);
-		toggleTestsButton.setTextOff("start");
-		toggleTestsButton.setTextOn("running tests...");
-
-		// Find working bar
-		workingBar = (ProgressBar) findViewById(R.id.workingBar);
-		workingBar.setVisibility(ProgressBar.INVISIBLE);
-		// Find progress bar
-		progressBar = (ProgressBar) findViewById(R.id.progressBar);
-
-		// Find algorithm and block info
-		algorithmName = (TextView) findViewById(R.id.algorithmName);
-		blockSizeView = (TextView) findViewById(R.id.blockSize);
-		this.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-		// Configure screen
-		toggleTestsButton.setTextOn("Executando testes...");
-		toggleTestsButton.setChecked(true);
-		toggleTestsButton.setClickable(false);
-		workingBar.setVisibility(ProgressBar.VISIBLE);
-
 		// Check if the intent tells us that the tests should be run
 		boolean runTests = false;
 		if (savedInstanceState == null) {
@@ -133,6 +111,28 @@ public class AllTestsActivity extends Activity {
 
 		// Start tests
 		if (runTests) {
+			// Find toggle button
+			toggleTestsButton = (ToggleButton) findViewById(R.id.toggleTests);
+			toggleTestsButton.setTextOff("start");
+			toggleTestsButton.setTextOn("running tests...");
+
+			// Find working bar
+			workingBar = (ProgressBar) findViewById(R.id.workingBar);
+			workingBar.setVisibility(ProgressBar.INVISIBLE);
+			// Find progress bar
+			progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
+			// Find algorithm and block info
+			algorithmName = (TextView) findViewById(R.id.algorithmName);
+			blockSizeView = (TextView) findViewById(R.id.blockSize);
+			this.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+			// Configure screen
+			toggleTestsButton.setTextOn("Executando testes...");
+			toggleTestsButton.setChecked(true);
+			toggleTestsButton.setClickable(false);
+			workingBar.setVisibility(ProgressBar.VISIBLE);
+
 			Log.i("DSP TESTS", "Starting control thread...");
 			setupTests();
 			startControlThread();
