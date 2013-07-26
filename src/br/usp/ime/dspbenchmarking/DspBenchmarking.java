@@ -65,6 +65,7 @@ public class DspBenchmarking extends Activity {
     public void startAllTestsActivity(View v) {
     	Log.i("Main", "Starting all tests...");
     	Intent tests_intent = new Intent(DspBenchmarking.this, AllTestsActivity.class);
+    	tests_intent.putExtra(AllTestsActivity.MESSAGE_RUN_TESTS, true);
     	DspBenchmarking.this.startActivity(tests_intent);
     }
  }
