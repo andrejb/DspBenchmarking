@@ -3,7 +3,6 @@ package br.usp.ime.dspbenchmarking.threads;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.EnumMap;
-import java.util.HashMap;
 
 import br.usp.ime.dspbenchmarking.algorithms.AdditiveSynthesisLookupTableTruncated;
 import br.usp.ime.dspbenchmarking.algorithms.AdditiveSynthesisSine;
@@ -88,8 +87,6 @@ public class DspThread extends Thread {
 	private int state = STATE_STOPPED;
 
 	// DSP algorithms
-	private DspAlgorithm[] algorithms;
-	
 	public enum AlgorithmEnum { LOOPBACK, REVERB, FFT_ALGORITHM, CONVOLUTION, ADD_SYNTH_SINE,
 		ADD_SYNTH_LOOKUP_TABLE_LINEAR, ADD_SYNTH_LOOKUP_TABLE_CUBIC, 
 		ADD_SYNTH_LOOKUP_TABLE_TRUNCATED,
@@ -113,8 +110,10 @@ public class DspThread extends Thread {
 		android.os.Process
 		.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
+		// Algorithms map
 		map_algorithm = new EnumMap<DspThread.AlgorithmEnum, DspAlgorithm>(AlgorithmEnum.class);
-		
+
+		// Instantiate algorithms
 		map_algorithm.put(AlgorithmEnum.LOOPBACK, new Loopback(sampleRate, DEFAULT_BLOCK_SIZE));
 		map_algorithm.put(AlgorithmEnum.REVERB, new Reverb(sampleRate, DEFAULT_BLOCK_SIZE));
 		map_algorithm.put(AlgorithmEnum.FFT_ALGORITHM, new FftAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE));
@@ -128,19 +127,6 @@ public class DspThread extends Thread {
 		map_algorithm.put(AlgorithmEnum.DOUBLE_FFT_1T, new DoubleFFT_1D1TAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE));
 		map_algorithm.put(AlgorithmEnum.DOUBLE_FFT_2T, new DoubleFFT_1D2TAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE));
 		
-		// Instantiate algorithms
-		/*algorithms = new DspAlgorithm[10];
-		algorithms[0] = new Loopback(sampleRate, DEFAULT_BLOCK_SIZE);
-		algorithms[1] = new Reverb(sampleRate, DEFAULT_BLOCK_SIZE);
-		algorithms[2] = new FftAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE);
-		algorithms[3] = new Convolution(sampleRate, DEFAULT_BLOCK_SIZE, 1);
-		algorithms[4] = new AdditiveSynthesisSine(sampleRate, DEFAULT_BLOCK_SIZE, 1);
-		algorithms[5] = new AdditiveSynthesisLookupTableLinear(sampleRate, DEFAULT_BLOCK_SIZE, 1);
-		algorithms[6] = new AdditiveSynthesisLookupTableCubic(sampleRate, DEFAULT_BLOCK_SIZE, 1);
-		algorithms[7] = new AdditiveSynthesisLookupTableTruncated(sampleRate, DEFAULT_BLOCK_SIZE, 1);
-		algorithms[8] = new FFTWAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE);
-		algorithms[9] = new FFTWMultithreadAlgorithm(sampleRate, DEFAULT_BLOCK_SIZE);*/
-
 		// set default DSP values
 		setAlgorithm(AlgorithmEnum.LOOPBACK);  // Loopback
 		setBlockSize(64);  // this must be done after we have set an algorithm

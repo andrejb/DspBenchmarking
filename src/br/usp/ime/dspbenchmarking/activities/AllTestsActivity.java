@@ -15,12 +15,10 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
-import android.util.Pair;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 import br.usp.ime.dspbenchmarking.R;
-import br.usp.ime.dspbenchmarking.algorithms.DspAlgorithm;
 import br.usp.ime.dspbenchmarking.threads.DspThread;
 
 /**
