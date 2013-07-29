@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="dsp">DEMO: clique aqui para uma demonstração.</string>
+    <string name="app_name">DSP Benchmarking</string>
+    <string name="quit">Sair</string>
+    <string name="toggle_dsp">Compute audio</string>
+    <string name="mean_sample_write_time">"Mean sample write time:  "</string>
+    <string name="mean_sample_read_time">"Mean sample read time:  "</string>
+    <string name="mean_dsp_cycle_time">"Mean DSP cycle time:  "</string>
+    <string name="cpu_usage">CPU usage:  </string>
+    <string name="dsp_cycle_time_processing">Amount of DSP cycle used with processing:  </string>
+    <string name="dsp_block_64">64</string>
+    <string name="dsp_block_128">128</string>
+    <string name="dsp_block_256">256</string>
+    <string name="dsp_block_512">512</string>
+    <string name="dsp_block_size">DSP block size:  </string>
+    <string name="dsp_block_1">1</string>
+    <string name="dsp_period">"DSP (theoretical) period:  "</string>
+    <string name="dsp_cycles">"DSP cycles:  "</string>
+    <string name="callback_period">"Callback period:  "</string>
+    <string name="algorithm">Algorithm:  </string>
+    <string name="reverb">Reverb</string>
+    
+    <string-array name="algorithm_array">
+        <item>Loopback</item>
+        <item>Reverb</item>
+        <item>FFT</item>
+        <!-- <item>Phase Vocoder</item>
+        <item >Stress</item>-->
+        <item >Convolution</item>
+        <item >Additive Synthesis (sine)</item>
+        <item >Additive Synthesis (linear interp)</item>
+        <item >Additive Synthesis (cubic interp)</item>
+        <item >Additive Synthesis (truncated)</item>
+        <item >FFTW - monothread</item>
+        <item >FFTW - multithread</item>
+        <item >DoubleFFT - monothread</item>
+        <item >DoubleFFT - multithread</item>
+    </string-array>
+    
+  	<string-array name="block_size_array">
+        <item>1</item>
+     	<item>2</item>
+        <item>4</item>
+        <item>8</item>
+        <item>16</item>
+        <item>32</item>
+        <item>64</item>
+        <item>128</item>
+        <item>256</item>
+        <item>512</item>
+        <item>1024</item>
+        <item>2048</item>
+        <item>4096</item>
+        <item>8192</item>
+        <item>16384</item>
+        <item>32768</item>
+        <item>65536</item>
+        <item>131072</item>
+        <item>262144</item>
+    </string-array>
+    
+  	<string-array name="source_array">
+        <item>Microphone</item>
+     	<item>File 1</item>
+    </string-array>
+    
+        <string name="read_cycles">"Read cycles:  "</string>
+        <string name="int_0">0</string>
+        <string name="float_0">0.00</string>
+        <string name="elapsed_time">"Elapsed time:  "</string>
+        <string name="param_1">"Parameter 1:  "</string>
+        <string name="audio_source">Audio source:</string>
+        <string name="dsp_benchmarking">Testes de processamento</string>
+        <string name="start">start</string>
+        <string name="loopback">&quot;Loopback  &quot;</string>
+        <string name="dash">-</string>
+        <string name="stress_test">Stress Test</string>
+        <string name="filter_size">"Filter size: "</string>
+        <string name="block_size">"Block size: "</string>
+        <string name="eme">"m: "</string>
+    	<string name="emao">"M: "</string>
+    	<string name="seconds">" s."</string>
+    	<string name="test_statistics">__Test statistics__</string>
+    	<string name="run_all_tests">TESTES: clique para iniciar os testes (ao final você poderá nos enviar um email com os resultados).</string>
+    	<string name="choose_an_option">Escolha uma opção:</string>
+    	<string name="explain_tests">Para rodar os testes no aparelho, clique no botão a seguir. Ao final, você terá a opção de nos enviar um email com os resultados.</string>
+    	<string name="airplane_mode">Coloque o dispositivo no Modo Avião para liberar os testes.</string>
+    	<string name="welcome">Bem vindo/a ao DSP Benchmarking!</string>
+    	<string name="instructions">\nMuito obrigado por aceitar ajudar este trabalho de mestrado e submeter seu aparelho com Android a uma bateria de testes de processamento de áudio em tempo real.\n\nPor favor, encerre todos os aplicativos que estiverem ativos no telefone e coloque-o no \&quot;Modo Avião\&quot; antes de executar os testes.\n\nO código fonte deste aplicativo e informações sobre como verificar a autenticidade deste pacote estão disponíveis no seguinte endereço:\n\nhttp://www.ime.usp.br/~ajb/wiki/android\n\n</string>
+    	<string name="current_test">&quot;Teste atual:  &quot;</string>
+    	<string name="progress">Progresso:</string>
+    	<string name="dash_with_spaces">&quot;  -  &quot;</string>
+</resources>

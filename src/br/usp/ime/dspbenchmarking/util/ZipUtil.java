@@ -1,6 +1,5 @@
 package br.usp.ime.dspbenchmarking.util;
 
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -8,18 +7,6 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class ZipUtil {
-
-
-    public static String convertToHex(byte[] in) {
-
-        StringBuffer sb = new StringBuffer();
-
-        for (byte b : in) {
-            sb.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
-        }
-
-        return sb.toString();
-    }
 
 	// Compression   
 	public static byte[] compress (String str) throws IOException {
@@ -50,7 +37,5 @@ public class ZipUtil {
 		// ToString () using the platform default encoding, you can also explicitly specify toString ("GBK")   
 		return out.toString ();
 	}
-
-
 
 }

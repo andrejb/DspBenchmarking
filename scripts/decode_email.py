@@ -8,7 +8,7 @@ passw = getpass.getpass()
 mail = imaplib.IMAP4_SSL("imap.gmail.com")
 mail.login(user, passw)
 
-mail.select("INBOX")
+mail.select("resultados-enviados")
 
 result, data = mail.search(None, "ALL")
 
