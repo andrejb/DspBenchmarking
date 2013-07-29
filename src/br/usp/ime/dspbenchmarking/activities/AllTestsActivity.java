@@ -179,8 +179,14 @@ public class AllTestsActivity extends Activity {
 	 * Update screen with test information.
 	 */
 	protected void updateScreenInfo(DspThread.AlgorithmEnum algorithm, int blockSize) {
-		algorithmName.setText(dt.getAlgorithmNameById(algorithm) + " ");
-		blockSizeView.setText(String.valueOf(blockSize));
+		String algString = "- ";
+		String blockString = "-";
+		if (algorithm != null)
+			algString = dt.getAlgorithmNameById(algorithm) + " ";
+		if (blockSize != 0)
+			blockString = String.valueOf(blockSize);
+		algorithmName.setText(algString);
+		blockSizeView.setText(blockString);
 	}
 
 	/**
@@ -651,7 +657,8 @@ public class AllTestsActivity extends Activity {
 					break;
 			}
 
-			// Set progress bar to 100%
+			// Update screen
+			updateScreenInfo(null, 0);
 			progressBar.setProgress(100);
 
 			// Turn off when done.
