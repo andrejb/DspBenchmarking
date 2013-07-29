@@ -1,6 +1,8 @@
 package br.usp.ime.dspbenchmarking.activities;
 
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -14,12 +16,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.provider.Settings;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 import br.usp.ime.dspbenchmarking.R;
 import br.usp.ime.dspbenchmarking.threads.DspThread;
+import br.usp.ime.dspbenchmarking.util.ZipUtil;
 
 /**
  * An activity that performs all tests in a device. Tests are divided in 2 phases:
@@ -237,13 +241,32 @@ public class AllTestsActivity extends Activity {
 	 * @param title
 	 */
 	private void sendResults(String title) {
-		Intent sendIntent = new Intent(Intent.ACTION_SEND);
-		sendIntent.putExtra(Intent.EXTRA_TEXT, results);
-		String[] to = { "compmus.ime@gmail.com" };
-		sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
-		sendIntent.putExtra(Intent.EXTRA_SUBJECT, "[dsp-benchmarking] "+title);
-		sendIntent.setType("message/rfc822");
-		startActivity(Intent.createChooser(sendIntent, "Send results"));	
+        String body;
+
+        try {
+
+            byte[] compressed = ZipUtil.compress(results).getBytes();
+            byte[] md5        = MessageDigest.getInstance("MD5").digest(compressed);
+
+            body  = "<anexo>\n";
+            body +=  Base64.encodeToString(compressed, Base64.DEFAULT);
+            body += "<anexo>\n\n ";
+
+            body += "MD5: " + ZipUtil.convertToHex(md5);
+
+		    Intent sendIntent = new Intent(Intent.ACTION_SEND);
+		    sendIntent.putExtra(Intent.EXTRA_TEXT, body);
+	    	String[] to = { "m.r650200@gmail.com" };
+	    	sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
+		    sendIntent.putExtra(Intent.EXTRA_SUBJECT, "[dsp-benchmarking] "+title);
+		    sendIntent.setType("message/rfc822");
+		    startActivity(Intent.createChooser(sendIntent, "Send results"));
+
+        } catch (IOException e) {
+            Log.e("SEND_RESULTS", "IO Error: " + e.getMessage());
+        } catch (NoSuchAlgorithmException e) {
+            Log.e("SEND_RESULTS", "Message Digest Error: " + e.getMessage());
+        }
 	}
 
 
@@ -460,20 +483,20 @@ public class AllTestsActivity extends Activity {
 			
 			DspThread.AlgorithmEnum phase_1[] = {
 					DspThread.AlgorithmEnum.LOOPBACK,
-					DspThread.AlgorithmEnum.REVERB,
+					/*DspThread.AlgorithmEnum.REVERB,
 					DspThread.AlgorithmEnum.FFT_ALGORITHM,
 					DspThread.AlgorithmEnum.FFTW_MONO, 
 					DspThread.AlgorithmEnum.FFTW_MULTI,
 					DspThread.AlgorithmEnum.DOUBLE_FFT_1T,
-					DspThread.AlgorithmEnum.DOUBLE_FFT_2T
+					DspThread.AlgorithmEnum.DOUBLE_FFT_2T*/
 			};
 			
 			DspThread.AlgorithmEnum phase_2[] = {
-					DspThread.AlgorithmEnum.CONVOLUTION, 
+					/*DspThread.AlgorithmEnum.CONVOLUTION,
 					DspThread.AlgorithmEnum.ADD_SYNTH_SINE,
 					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_LINEAR,
 					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_CUBIC, 
-					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_TRUNCATED
+					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_TRUNCATED*/
 			};
 
 			// Number of algorithms tested
