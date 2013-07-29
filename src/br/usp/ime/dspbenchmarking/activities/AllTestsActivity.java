@@ -23,7 +23,9 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 import br.usp.ime.dspbenchmarking.R;
 import br.usp.ime.dspbenchmarking.threads.DspThread;
+
 import br.usp.ime.dspbenchmarking.util.ZipUtil;
+
 
 /**
  * An activity that performs all tests in a device. Tests are divided in 2 phases:
@@ -182,15 +184,15 @@ public class AllTestsActivity extends Activity {
 		String algString = "- ";
 		String blockString = "-";
 
-        if (algorithm != null) {
+		if (algorithm != null) {
 			algString = dt.getAlgorithmNameById(algorithm) + " ";
-            algorithmName.setText(algString);
-        }
+			algorithmName.setText(algString);			
+		}
 
 		if (blockSize != 0) {
 			blockString = String.valueOf(blockSize);
-            blockSizeView.setText(blockString);
-        }
+			blockSizeView.setText(blockString);						
+		}
 	}
 
 	/**
@@ -252,24 +254,24 @@ public class AllTestsActivity extends Activity {
 	 */
 	private void sendResults(String title) {
 
-        try {
+        	try {
+			Intent sendIntent = new Intent(Intent.ACTION_SEND);
 
-		Intent sendIntent = new Intent(Intent.ACTION_SEND);
+		        String[] to = { "m.r650200@gmail.com" };
 
-        String[] to = { "m.r650200@gmail.com" };
+	       		sendIntent.putExtra(Intent.EXTRA_TEXT,
+	       	         "<attachment>" + Base64.encodeToString(ZipUtil.compress(results), Base64.DEFAULT) + "<attachment>");
 
-        sendIntent.putExtra(Intent.EXTRA_TEXT,
-                "<attachment>" + Base64.encodeToString(ZipUtil.compress(results), Base64.DEFAULT) + "<attachment>");
+	        	sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
+	
+			sendIntent.putExtra(Intent.EXTRA_SUBJECT, "[dsp-benchmarking] "+title);
 
-        sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
-		sendIntent.putExtra(Intent.EXTRA_SUBJECT, "[dsp-benchmarking] "+title);
+			sendIntent.setType("message/rfc822");
+			startActivity(Intent.createChooser(sendIntent, "Send results"));
 
-		sendIntent.setType("message/rfc822");
-		startActivity(Intent.createChooser(sendIntent, "Send results"));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 	}
 
@@ -487,12 +489,14 @@ public class AllTestsActivity extends Activity {
 			
 			DspThread.AlgorithmEnum phase_1[] = {
 					DspThread.AlgorithmEnum.LOOPBACK,
-					//DspThread.AlgorithmEnum.REVERB,
-					//DspThread.AlgorithmEnum.FFT_ALGORITHM,
-					//DspThread.AlgorithmEnum.FFTW_MONO,
-					//DspThread.AlgorithmEnum.FFTW_MULTI,
-					//DspThread.AlgorithmEnum.DOUBLE_FFT_1T,
-					//DspThread.AlgorithmEnum.DOUBLE_FFT_2T
+					DspThread.AlgorithmEnum.REVERB,
+					DspThread.AlgorithmEnum.FFT_ALGORITHM,
+					DspThread.AlgorithmEnum.FFTW_MONO, 
+					DspThread.AlgorithmEnum.FFTW_MULTI,
+					DspThread.AlgorithmEnum.DOUBLE_FFT,
+					DspThread.AlgorithmEnum.DOUBLE_DCT,
+					DspThread.AlgorithmEnum.DOUBLE_DST,
+					DspThread.AlgorithmEnum.DOUBLE_DHT
 			};
 			
 			DspThread.AlgorithmEnum phase_2[] = {

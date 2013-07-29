@@ -32,7 +32,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package br.usp.ime.dspbenchmarking.algorithms.jtransforms.fft;
+package br.usp.ime.dspbenchmarking.algorithms.jtransforms;
 
 import java.util.concurrent.Future;
 
