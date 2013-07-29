@@ -1,5 +1,5 @@
 
-import imaplib, getpass, email, sys, base64, zlib
+import imaplib, getpass, email, sys, base64, StringIO, gzip
 
 print "User: ",
 user = raw_input()
@@ -37,17 +37,28 @@ for vid in ids:
 					txt = msg.get_payload()[0].as_string()
 
 					if "<attachment>" in txt:
-						msg = txt.split("attachment")[1].replace("\n","").replace("\r","")
-						print "compressed: " + str(len(msg))
-						print "original: " + str(len(zlib.decompress(base64.b64decode(msg), 16 + zlib.MAX_WBITS)))
+						msg  = txt.split("attachment")[1].replace("\n","").replace("\r","")
+						stio = StringIO.StringIO(base64.b64decode(msg))
 
-						name = "result_" + vid + ".txt"
-						print " ==> ", name
-						print ""
+						try:
 
-						fp = open(name, "w")
-						fp.write(txt)
-						fp.close()
+							gz   = gzip.GzipFile(fileobj = stio)
+							orig = gz.read()
+							gz.close()
+
+							print "compressed: " + str(len(msg))
+							print "original: " + str(len(orig))
+
+							name = "result_" + vid + ".txt"
+							print " ==> ", name
+							print ""
+
+							fp = open(name, "w")
+							fp.write(orig)
+							fp.close()
+
+						except:
+							print "Failed to decompress message\n"						
 
 					else:
 						print "Message misformed"
