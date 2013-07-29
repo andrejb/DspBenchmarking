@@ -8,7 +8,7 @@ passw = getpass.getpass()
 mail = imaplib.IMAP4_SSL("imap.gmail.com")
 mail.login(user, passw)
 
-mail.select("INBOX")
+mail.select("resultados-enviados")
 
 result, data = mail.search(None, "ALL")
 
@@ -39,14 +39,14 @@ for vid in ids:
 					if "<attachment>" in txt:
 						msg = txt.split("attachment")[1].replace("\n","").replace("\r","")
 						print "compressed: " + str(len(msg))
-						print "original: " + str(len(zlib.decompress(base64.b64decode(msg), 16 + zlib.MAX_WBITS)))
-
+			                        results = zlib.decompress(base64.b64decode(msg), 16 + zlib.MAX_WBITS)
+						print "original: " + str(len(results))
 						name = "result_" + vid + ".txt"
 						print " ==> ", name
 						print ""
 
 						fp = open(name, "w")
-						fp.write(txt)
+						fp.write(results)
 						fp.close()
 
 					else:

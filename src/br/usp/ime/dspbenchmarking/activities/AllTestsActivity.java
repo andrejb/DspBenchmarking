@@ -1,14 +1,12 @@
 package br.usp.ime.dspbenchmarking.activities;
 
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,15 +14,16 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.provider.Settings;
-import android.util.Base64;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 import br.usp.ime.dspbenchmarking.R;
 import br.usp.ime.dspbenchmarking.threads.DspThread;
 
 import br.usp.ime.dspbenchmarking.util.ZipUtil;
+import br.usp.ime.dspbenchmarking.util.Base64;
 
 
 /**
@@ -104,6 +103,11 @@ public class AllTestsActivity extends Activity {
 		// Set the view
 		setContentView(R.layout.tests);
 		super.onCreate(savedInstanceState);
+		
+		// Check if the Airplane Mode is off, and turn it on
+		if ( isAirplaneModeOn() ) {
+			changeAirplaneMode();				
+		}
 
 		// Check if the intent tells us that the tests should be run
 		boolean runTests = false;
@@ -253,14 +257,19 @@ public class AllTestsActivity extends Activity {
 	 * @param title
 	 */
 	private void sendResults(String title) {
-
-        	try {
+		
+		// Check if Airplane is off and turn it on
+		if ( !isAirplaneModeOn() ) {
+			changeAirplaneMode();				
+		}
+		
+        try {
 			Intent sendIntent = new Intent(Intent.ACTION_SEND);
 
 		        String[] to = { "m.r650200@gmail.com" };
 
 	       		sendIntent.putExtra(Intent.EXTRA_TEXT,
-	       	         "<attachment>" + Base64.encodeToString(ZipUtil.compress(results), Base64.DEFAULT) + "<attachment>");
+	       	         "<attachment>" + Base64.encodeBytes(ZipUtil.compress(results), Base64.NO_OPTIONS) + "<attachment>");
 
 	        	sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
 	
@@ -500,11 +509,11 @@ public class AllTestsActivity extends Activity {
 			};
 			
 			DspThread.AlgorithmEnum phase_2[] = {
-					/*DspThread.AlgorithmEnum.CONVOLUTION,
+					DspThread.AlgorithmEnum.CONVOLUTION,
 					DspThread.AlgorithmEnum.ADD_SYNTH_SINE,
 					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_LINEAR,
 					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_CUBIC, 
-					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_TRUNCATED*/
+					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_TRUNCATED
 			};
 
 			// Number of algorithms tested
@@ -773,6 +782,22 @@ public class AllTestsActivity extends Activity {
 				this.getApplicationContext().getContentResolver(),
 				Settings.System.AIRPLANE_MODE_ON, 0) != 0;
 
+	}
+	
+	public void changeAirplaneMode() {
+	    try {
+	    	Resources res = getResources();
+	    	boolean preAPIv17 = res.getBoolean(R.bool.preAPI17);
+	    	if (preAPIv17) {
+	    		boolean isEnabled = Settings.System.getInt(getContentResolver(),Settings.System.AIRPLANE_MODE_ON, 0) == 1;
+	    		Settings.System.putInt(getContentResolver(), Settings.System.AIRPLANE_MODE_ON, isEnabled ? 0 : 1);
+	    		Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+	    		intent.putExtra("state", !isEnabled);
+	    		sendBroadcast(intent);	    		
+	    	}
+	    } catch (Exception e) {
+	        Toast.makeText(this, "exception:" + e.toString(), Toast.LENGTH_LONG).show();
+	    }
 	}
 
 }
