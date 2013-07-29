@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 import br.usp.ime.dspbenchmarking.R;
 import br.usp.ime.dspbenchmarking.threads.DspThread;
+import br.usp.ime.dspbenchmarking.utils.ZipUtil;
 
 /**
  * An activity that performs all tests in a device. Tests are divided in 2 phases:
@@ -177,12 +178,14 @@ public class AllTestsActivity extends Activity {
 	protected void updateScreenInfo(DspThread.AlgorithmEnum algorithm, int blockSize) {
 		String algString = "- ";
 		String blockString = "-";
-		if (algorithm != null)
+		if (algorithm != null) {
 			algString = dt.getAlgorithmNameById(algorithm) + " ";
-		if (blockSize != 0)
+			algorithmName.setText(algString);			
+		}
+		if (blockSize != 0) {
 			blockString = String.valueOf(blockSize);
-		algorithmName.setText(algString);
-		blockSizeView.setText(blockString);
+			blockSizeView.setText(blockString);						
+		}
 	}
 
 	/**
@@ -244,7 +247,14 @@ public class AllTestsActivity extends Activity {
 	 */
 	private void sendResults(String title) {
 		Intent sendIntent = new Intent(Intent.ACTION_SEND);
-		sendIntent.putExtra(Intent.EXTRA_TEXT, results);
+		try {
+			String compressedResults = ZipUtil.compress(results);
+			sendIntent.putExtra(Intent.EXTRA_TEXT, compressedResults);
+		} catch (IOException e) {
+
+			sendIntent.putExtra(Intent.EXTRA_TEXT, results);
+			e.printStackTrace();
+		}
 		String[] to = { "compmus.ime@gmail.com" };
 		sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
 		sendIntent.putExtra(Intent.EXTRA_SUBJECT, "[dsp-benchmarking] "+title);
@@ -470,8 +480,10 @@ public class AllTestsActivity extends Activity {
 					DspThread.AlgorithmEnum.FFT_ALGORITHM,
 					DspThread.AlgorithmEnum.FFTW_MONO, 
 					DspThread.AlgorithmEnum.FFTW_MULTI,
-					DspThread.AlgorithmEnum.DOUBLE_FFT_1T,
-					DspThread.AlgorithmEnum.DOUBLE_FFT_2T
+					DspThread.AlgorithmEnum.DOUBLE_FFT,
+					DspThread.AlgorithmEnum.DOUBLE_DCT,
+					DspThread.AlgorithmEnum.DOUBLE_DST,
+					DspThread.AlgorithmEnum.DOUBLE_DHT
 			};
 			
 			DspThread.AlgorithmEnum phase_2[] = {
