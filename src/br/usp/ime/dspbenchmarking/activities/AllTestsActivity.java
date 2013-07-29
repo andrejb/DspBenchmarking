@@ -181,12 +181,16 @@ public class AllTestsActivity extends Activity {
 	protected void updateScreenInfo(DspThread.AlgorithmEnum algorithm, int blockSize) {
 		String algString = "- ";
 		String blockString = "-";
-		if (algorithm != null)
+
+        if (algorithm != null) {
 			algString = dt.getAlgorithmNameById(algorithm) + " ";
-		if (blockSize != 0)
+            algorithmName.setText(algString);
+        }
+
+		if (blockSize != 0) {
 			blockString = String.valueOf(blockSize);
-		algorithmName.setText(algString);
-		blockSizeView.setText(blockString);
+            blockSizeView.setText(blockString);
+        }
 	}
 
 	/**
@@ -247,32 +251,26 @@ public class AllTestsActivity extends Activity {
 	 * @param title
 	 */
 	private void sendResults(String title) {
-        String body;
 
         try {
 
-            byte[] compressed = ZipUtil.compress(results).getBytes();
-            byte[] md5        = MessageDigest.getInstance("MD5").digest(compressed);
+		Intent sendIntent = new Intent(Intent.ACTION_SEND);
 
-            body  = "<anexo>\n";
-            body +=  Base64.encodeToString(compressed, Base64.DEFAULT);
-            body += "<anexo>\n\n ";
+        String[] to = { "m.r650200@gmail.com" };
 
-            body += "MD5: " + ZipUtil.convertToHex(md5);
+        sendIntent.putExtra(Intent.EXTRA_TEXT,
+                "<attachment>" + Base64.encodeToString(ZipUtil.compress(results), Base64.DEFAULT) + "<attachment>");
 
-		    Intent sendIntent = new Intent(Intent.ACTION_SEND);
-		    sendIntent.putExtra(Intent.EXTRA_TEXT, body);
-	    	String[] to = { "m.r650200@gmail.com" };
-	    	sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
-		    sendIntent.putExtra(Intent.EXTRA_SUBJECT, "[dsp-benchmarking] "+title);
-		    sendIntent.setType("message/rfc822");
-		    startActivity(Intent.createChooser(sendIntent, "Send results"));
+        sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
+		sendIntent.putExtra(Intent.EXTRA_SUBJECT, "[dsp-benchmarking] "+title);
+
+		sendIntent.setType("message/rfc822");
+		startActivity(Intent.createChooser(sendIntent, "Send results"));
 
         } catch (IOException e) {
-            Log.e("SEND_RESULTS", "IO Error: " + e.getMessage());
-        } catch (NoSuchAlgorithmException e) {
-            Log.e("SEND_RESULTS", "Message Digest Error: " + e.getMessage());
+            e.printStackTrace();
         }
+
 	}
 
 
@@ -489,12 +487,12 @@ public class AllTestsActivity extends Activity {
 			
 			DspThread.AlgorithmEnum phase_1[] = {
 					DspThread.AlgorithmEnum.LOOPBACK,
-					/*DspThread.AlgorithmEnum.REVERB,
-					DspThread.AlgorithmEnum.FFT_ALGORITHM,
-					DspThread.AlgorithmEnum.FFTW_MONO, 
-					DspThread.AlgorithmEnum.FFTW_MULTI,
-					DspThread.AlgorithmEnum.DOUBLE_FFT_1T,
-					DspThread.AlgorithmEnum.DOUBLE_FFT_2T*/
+					//DspThread.AlgorithmEnum.REVERB,
+					//DspThread.AlgorithmEnum.FFT_ALGORITHM,
+					//DspThread.AlgorithmEnum.FFTW_MONO,
+					//DspThread.AlgorithmEnum.FFTW_MULTI,
+					//DspThread.AlgorithmEnum.DOUBLE_FFT_1T,
+					//DspThread.AlgorithmEnum.DOUBLE_FFT_2T
 			};
 			
 			DspThread.AlgorithmEnum phase_2[] = {
