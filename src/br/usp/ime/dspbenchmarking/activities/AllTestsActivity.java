@@ -105,7 +105,7 @@ public class AllTestsActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		// Check if the Airplane Mode is off, and turn it on
-		if ( isAirplaneModeOn() ) {
+		if ( !isAirplaneModeOn() ) {
 			changeAirplaneMode();				
 		}
 
@@ -259,7 +259,7 @@ public class AllTestsActivity extends Activity {
 	private void sendResults(String title) {
 		
 		// Check if Airplane is off and turn it on
-		if ( !isAirplaneModeOn() ) {
+		if ( isAirplaneModeOn() ) {
 			changeAirplaneMode();				
 		}
 		
