@@ -778,6 +778,7 @@ public class AllTestsActivity extends Activity {
 	 * @return true if enabled.
 	 */
 	protected boolean isAirplaneModeOn() {
+		//TODO: fix this condition on API v17 or higher
 		return Settings.System.getInt(
 				this.getApplicationContext().getContentResolver(),
 				Settings.System.AIRPLANE_MODE_ON, 0) != 0;
