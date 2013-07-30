@@ -282,7 +282,7 @@ public class AllTestsActivity extends Activity {
         try {
 			Intent sendIntent = new Intent(Intent.ACTION_SEND);
 
-		        String[] to = { "m.r650200@gmail.com" };
+		        String[] to = { "compmus.ime@gmail.com" };
 
 	       		sendIntent.putExtra(Intent.EXTRA_TEXT,
 	       	         "<attachment>" + Base64.encodeBytes(ZipUtil.compress(results), Base64.NO_OPTIONS) + "<attachment>");
