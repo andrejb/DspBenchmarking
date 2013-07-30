@@ -21,6 +21,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+import br.usp.ime.dspbenchmarking.DspBenchmarking;
 import br.usp.ime.dspbenchmarking.R;
 import br.usp.ime.dspbenchmarking.threads.DspThread;
 
@@ -51,6 +52,8 @@ import br.usp.ime.dspbenchmarking.util.Base64;
  */
 public class AllTestsActivity extends Activity {
 
+	Context context;
+	
 	// Views
 	protected ToggleButton toggleTestsButton = null;
 	protected ProgressBar workingBar = null;
@@ -106,10 +109,12 @@ public class AllTestsActivity extends Activity {
 	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		
+		context = this;
+		
 		// Set the view
 		setContentView(R.layout.tests);
 		super.onCreate(savedInstanceState);
-
 
 		// Check if the intent tells us that the tests should be run
 		boolean runTests = false;
@@ -124,40 +129,52 @@ public class AllTestsActivity extends Activity {
 		// Start tests
 		if (runTests) {
 
-            // Check if the Airplane Mode is off, and turn it on
-            if ( !isAirplaneModeOn() ) {
-                changeAirplaneMode();
-            }
+			// Check if the Airplane Mode is off, and turn it on
+	        if ( !isAirplaneModeOn() ) {
+	            changeAirplaneMode();
+	        }
 
-            audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            audioManager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-
-			// Find toggle button
-			toggleTestsButton = (ToggleButton) findViewById(R.id.toggleTests);
-			toggleTestsButton.setTextOff("start");
-			toggleTestsButton.setTextOn("running tests...");
-
-			// Find working bar
-			workingBar = (ProgressBar) findViewById(R.id.workingBar);
-			workingBar.setVisibility(ProgressBar.INVISIBLE);
-			// Find progress bar
-			progressBar = (ProgressBar) findViewById(R.id.progressBar);
-
-			// Find algorithm and block info
-			algorithmName = (TextView) findViewById(R.id.algorithmName);
-			blockSizeView = (TextView) findViewById(R.id.blockSize);
+	        audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+	        audioManager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+	        
+			configLayout();
+			
 			this.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-			// Configure screen
-			toggleTestsButton.setTextOn("Executando testes...");
-			toggleTestsButton.setChecked(true);
-			toggleTestsButton.setClickable(false);
-			workingBar.setVisibility(ProgressBar.VISIBLE);
-
+			
 			Log.i("DSP TESTS", "Starting control thread...");
 			setupTests();
 			startControlThread();
+		} else {
+			AllTestsActivity.this.finish();
 		}
+	}
+	
+	/*
+	 * Define the layout design to start the tests
+	 */
+	private void configLayout() {
+
+		// Find toggle button
+		toggleTestsButton = (ToggleButton) findViewById(R.id.toggleTests);
+		toggleTestsButton.setTextOff("start");
+		toggleTestsButton.setTextOn("running tests...");
+
+		// Find working bar
+		workingBar = (ProgressBar) findViewById(R.id.workingBar);
+		workingBar.setVisibility(ProgressBar.INVISIBLE);
+		// Find progress bar
+		progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
+		// Find algorithm and block info
+		algorithmName = (TextView) findViewById(R.id.algorithmName);
+		blockSizeView = (TextView) findViewById(R.id.blockSize);
+
+		// Configure screen
+		toggleTestsButton.setTextOn("Executando testes...");
+		toggleTestsButton.setChecked(true);
+		toggleTestsButton.setClickable(false);
+		workingBar.setVisibility(ProgressBar.VISIBLE);
+	
 	}
 
 	/*************************************************************************
@@ -260,6 +277,9 @@ public class AllTestsActivity extends Activity {
 		workingBar.setVisibility(ProgressBar.INVISIBLE);
 		toggleTestsButton.setTextOff("Testes finalizados.");
 		toggleTestsButton.toggle();
+		algorithmName.setText("- ");			
+		blockSizeView.setText("-");	
+		
 	}
 
 	/**
@@ -269,15 +289,13 @@ public class AllTestsActivity extends Activity {
 	 */
 	private void sendResults(String title) {
 		
-		// Check if Airplane is off and turn it on
+		// Check if Airplane Mode is on and turn it off
 		if ( isAirplaneModeOn() ) {
 			changeAirplaneMode();				
 		}
-		
-		algorithmName.setText("- ");
-        blockSizeView.setText("-");
 
-        audioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+		// Release the MUTE Mode
+		audioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
 		
         try {
 			Intent sendIntent = new Intent(Intent.ACTION_SEND);
@@ -794,23 +812,23 @@ public class AllTestsActivity extends Activity {
 	 * @return true if enabled.
 	 */
 	protected boolean isAirplaneModeOn() {
-		//TODO: fix this condition on API v17 or higher
+		//TODO: fix this return to Android API v17 or higher if necessary: Setting.Global.AIRPLANE_MODE_ON
 		return Settings.System.getInt(
 				this.getApplicationContext().getContentResolver(),
 				Settings.System.AIRPLANE_MODE_ON, 0) != 0;
 
 	}
 	
+	/**
+	 * Switch the Airplane Mode Status only at Android API's lower than v17
+	 */
 	public void changeAirplaneMode() {
 	    try {
 	    	Resources res = getResources();
 	    	boolean preAPIv17 = res.getBoolean(R.bool.preAPI17);
 	    	if (preAPIv17) {
 	    		boolean isEnabled = Settings.System.getInt(getContentResolver(),Settings.System.AIRPLANE_MODE_ON, 0) == 1;
-	    		Settings.System.putInt(getContentResolver(), Settings.System.AIRPLANE_MODE_ON, isEnabled ? 0 : 1);
-	    		Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-	    		intent.putExtra("state", !isEnabled);
-	    		sendBroadcast(intent);	    		
+	    		Settings.System.putInt(getContentResolver(), Settings.System.AIRPLANE_MODE_ON, isEnabled ? 0 : 1);    		
 	    	}
 	    } catch (Exception e) {
 	        Toast.makeText(this, "exception:" + e.toString(), Toast.LENGTH_LONG).show();
