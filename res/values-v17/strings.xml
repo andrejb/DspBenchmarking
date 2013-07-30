@@ -88,7 +88,7 @@
     	<string name="explain_tests">Para rodar os testes no aparelho, clique no botão a seguir. Ao final, você terá a opção de nos enviar um email com os resultados.</string>
     	<string name="airplane_mode">Coloque o dispositivo no Modo Avião para liberar os testes.</string>
     	<string name="welcome">Bem vindo/a ao DSP Benchmarking!</string>
-    	<string name="instructions">\nMuito obrigado por aceitar ajudar este trabalho de mestrado e submeter seu aparelho com Android a uma bateria de testes de processamento de áudio em tempo real.\n\nPor favor, encerre todos os aplicativos que estiverem ativos no telefone e coloque-o no \&quot;Modo Avião\&quot; antes de executar os testes.\n\nO código fonte deste aplicativo e informações sobre como verificar a autenticidade deste pacote estão disponíveis no seguinte endereço:\n\nhttp://www.ime.usp.br/~ajb/wiki/android\n\n</string>
+    	<string name="instructions">\nMuito obrigado por aceitar ajudar este trabalho de mestrado e submeter seu aparelho com Android a uma bateria de testes de processamento de áudio em tempo real.\n\nPor favor, encerre todos os aplicativos que estiverem ativos no telefone e coloque-o no \&quot;Modo Avião\&quot; antes de executar os testes.Seu dispositivo ficara em mute durante os testes, voltando ao normal no final dos testes. \n\nO código fonte deste aplicativo e informações sobre como verificar a autenticidade deste pacote estão disponíveis no seguinte endereço:\n\nhttp://www.ime.usp.br/~ajb/wiki/android\n\n</string>
     	<string name="current_test">&quot;Teste atual:  &quot;</string>
     	<string name="progress">Progresso:</string>
     	<string name="dash_with_spaces">&quot;  -  &quot;</string>

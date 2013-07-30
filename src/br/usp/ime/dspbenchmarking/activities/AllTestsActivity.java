@@ -4,10 +4,12 @@ import java.io.IOException;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -86,6 +88,10 @@ public class AllTestsActivity extends Activity {
 	// Threads
 	private TestControlThread mt;
 	protected DspThread dt;
+
+
+    // State of the device before executing the tests
+    private AudioManager audioManager;
 	
 
 	/*************************************************************************
@@ -103,11 +109,7 @@ public class AllTestsActivity extends Activity {
 		// Set the view
 		setContentView(R.layout.tests);
 		super.onCreate(savedInstanceState);
-		
-		// Check if the Airplane Mode is off, and turn it on
-		if ( !isAirplaneModeOn() ) {
-			changeAirplaneMode();				
-		}
+
 
 		// Check if the intent tells us that the tests should be run
 		boolean runTests = false;
@@ -121,6 +123,15 @@ public class AllTestsActivity extends Activity {
 
 		// Start tests
 		if (runTests) {
+
+            // Check if the Airplane Mode is off, and turn it on
+            if ( !isAirplaneModeOn() ) {
+                changeAirplaneMode();
+            }
+
+            audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+            audioManager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+
 			// Find toggle button
 			toggleTestsButton = (ToggleButton) findViewById(R.id.toggleTests);
 			toggleTestsButton.setTextOff("start");
@@ -146,7 +157,10 @@ public class AllTestsActivity extends Activity {
 			Log.i("DSP TESTS", "Starting control thread...");
 			setupTests();
 			startControlThread();
-		}
+		} else {
+            algorithmName.setText("- ");
+            blockSizeView.setText("-");
+        }
 	}
 
 	/*************************************************************************
@@ -262,6 +276,8 @@ public class AllTestsActivity extends Activity {
 		if ( isAirplaneModeOn() ) {
 			changeAirplaneMode();				
 		}
+
+        audioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
 		
         try {
 			Intent sendIntent = new Intent(Intent.ACTION_SEND);
