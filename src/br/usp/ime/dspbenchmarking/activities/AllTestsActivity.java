@@ -157,10 +157,7 @@ public class AllTestsActivity extends Activity {
 			Log.i("DSP TESTS", "Starting control thread...");
 			setupTests();
 			startControlThread();
-		} else {
-            algorithmName.setText("- ");
-            blockSizeView.setText("-");
-        }
+		}
 	}
 
 	/*************************************************************************
@@ -276,6 +273,9 @@ public class AllTestsActivity extends Activity {
 		if ( isAirplaneModeOn() ) {
 			changeAirplaneMode();				
 		}
+		
+		algorithmName.setText("- ");
+        blockSizeView.setText("-");
 
         audioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
 		

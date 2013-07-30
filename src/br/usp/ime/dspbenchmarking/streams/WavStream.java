@@ -153,11 +153,18 @@ public class WavStream extends AudioStream {
 	 * @param size
 	 */
 	public void read(short[] buffer, int offset, int size) {
-		//Log.i("getFromBuffer", "dst offset="+offset);
-		//Log.i("getFromBuffer", "dst size="+size);
-		//Log.i("getFromBuffer", "dst length="+buffer.length);
-		//Log.i("getFromBuffer", "d===================");
-		dataBuffer.get(buffer, offset, size);
+//		Log.i("getFromBuffer", "dst offset="+offset);
+//		Log.i("getFromBuffer", "dst size="+size);
+//		Log.i("getFromBuffer", "dst length="+buffer.length);
+//		Log.i("getFromBuffer", "dataBuffer.limit="+dataBuffer.limit());
+//		Log.i("getFromBuffer", "d===================");
+		
+		if ( buffer.length > (offset+size) ) {
+			dataBuffer.get(buffer, offset, size);			
+		} else {
+			if ( (buffer.length-offset) > 0 )
+				dataBuffer.get(buffer, offset, buffer.length-offset);			
+		}
 	}
 
 
@@ -270,7 +277,7 @@ public class WavStream extends AudioStream {
 				try {
 					read(buffer, block * blockSize, blockSize);
 				} finally {
-
+//					read(buffer, block * blockSize - blockSize/2, blockSize);
 				}
 				times2 = SystemClock.uptimeMillis();
 				sampleReadTime += (times2 - times1);
