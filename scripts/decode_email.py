@@ -1,5 +1,5 @@
 
-import imaplib, getpass, email, sys, base64, StringIO, gzip
+import imaplib, getpass, email, sys, base64, StringIO, gzip, subprocess, quopri
 
 print "User: ",
 user = raw_input()
@@ -8,7 +8,7 @@ passw = getpass.getpass()
 mail = imaplib.IMAP4_SSL("imap.gmail.com")
 mail.login(user, passw)
 
-mail.select("resultados-enviados")
+mail.select("inbox")
 
 result, data = mail.search(None, "ALL")
 
@@ -37,8 +37,8 @@ for vid in ids:
 					txt = msg.get_payload()[0].as_string()
 
 					if "<attachment>" in txt:
-						msg  = txt.split("attachment")[1].replace("\n","").replace("\r","")
-						stio = StringIO.StringIO(base64.b64decode(msg))
+						plain  = quopri.decodestring(txt).split("<attachment>")[1]
+						stio = StringIO.StringIO(base64.b64decode(plain))
 
 						try:
 
@@ -46,18 +46,16 @@ for vid in ids:
 							orig = gz.read()
 							gz.close()
 
-							print "compressed: " + str(len(msg))
-							print "original: " + str(len(orig))
-
 							name = "result_" + vid + ".txt"
-							print " ==> ", name
-							print ""
+							print "==> ", name
 
 							fp = open(name, "w")
 							fp.write(orig)
 							fp.close()
 
-						except:
+						except Exception as e:
+							print type(e)
+							print e.args
 							print "Failed to decompress message\n"						
 
 					else:
