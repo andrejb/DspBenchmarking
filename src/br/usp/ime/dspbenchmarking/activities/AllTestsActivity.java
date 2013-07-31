@@ -765,12 +765,12 @@ public class AllTestsActivity extends Activity {
 		output += String.format("\t%.0f", dt.getElapsedTime()); 				// 3  - time
 		output += String.format("\t%d", dt.getCallbackTicks());				// 4  - cbt
 		output += String.format("\t%d", dt.getReadTicks());					// 5  - read tics
-		output += String.format("\t%.2f", dt.getSampleReadMeanTime());		// 6  - sample read
-		output += String.format("\t%.2f", dt.getSampleWriteMeanTime());		// 7  - sample write
-		output += String.format("\t%.2f", dt.getBlockPeriod());				// 8  - block period (calculated)
-		output += String.format("\t%.2f", dt.getCallbackPeriodMeanTime());	// 9  - callback period
-		output += String.format("\t%.2f", dt.getDspPerformMeanTime());		// 10 - perform time
-		output += String.format("\t%.2f", dt.getDspCallbackMeanTime());		// 11 - callback time
+		output += String.format("\t%.4f", dt.getSampleReadMeanTime());		// 6  - sample read
+		output += String.format("\t%.4f", dt.getSampleWriteMeanTime());		// 7  - sample write
+		output += String.format("\t%.4f", dt.getBlockPeriod());				// 8  - block period (calculated)
+		output += String.format("\t%.4f", dt.getCallbackPeriodMeanTime());	// 9  - callback period
+		output += String.format("\t%.4f", dt.getDspPerformMeanTime());		// 10 - perform time
+		output += String.format("\t%.4f", dt.getDspCallbackMeanTime());		// 11 - callback time
 		return output;
 	}
 
