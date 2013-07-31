@@ -1,13 +1,15 @@
 package br.usp.ime.dspbenchmarking.activities;
 
 import java.io.IOException;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,9 +19,15 @@ import android.provider.Settings;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
+import br.usp.ime.dspbenchmarking.DspBenchmarking;
 import br.usp.ime.dspbenchmarking.R;
 import br.usp.ime.dspbenchmarking.threads.DspThread;
+
+import br.usp.ime.dspbenchmarking.util.ZipUtil;
+import br.usp.ime.dspbenchmarking.util.Base64;
+
 
 /**
  * An activity that performs all tests in a device. Tests are divided in 2 phases:
@@ -44,6 +52,8 @@ import br.usp.ime.dspbenchmarking.threads.DspThread;
  */
 public class AllTestsActivity extends Activity {
 
+	Context context;
+	
 	// Views
 	protected ToggleButton toggleTestsButton = null;
 	protected ProgressBar workingBar = null;
@@ -81,6 +91,10 @@ public class AllTestsActivity extends Activity {
 	// Threads
 	private TestControlThread mt;
 	protected DspThread dt;
+
+
+    // State of the device before executing the tests
+    private AudioManager audioManager;
 	
 
 	/*************************************************************************
@@ -95,6 +109,9 @@ public class AllTestsActivity extends Activity {
 	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		
+		context = this;
+		
 		// Set the view
 		setContentView(R.layout.tests);
 		super.onCreate(savedInstanceState);
@@ -111,32 +128,53 @@ public class AllTestsActivity extends Activity {
 
 		// Start tests
 		if (runTests) {
-			// Find toggle button
-			toggleTestsButton = (ToggleButton) findViewById(R.id.toggleTests);
-			toggleTestsButton.setTextOff("start");
-			toggleTestsButton.setTextOn("running tests...");
 
-			// Find working bar
-			workingBar = (ProgressBar) findViewById(R.id.workingBar);
-			workingBar.setVisibility(ProgressBar.INVISIBLE);
-			// Find progress bar
-			progressBar = (ProgressBar) findViewById(R.id.progressBar);
+			// Check if the Airplane Mode is off, and turn it on
+	        if ( !isAirplaneModeOn() ) {
+	            changeAirplaneMode();
+	        }
 
-			// Find algorithm and block info
-			algorithmName = (TextView) findViewById(R.id.algorithmName);
-			blockSizeView = (TextView) findViewById(R.id.blockSize);
+	        audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+	        audioManager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+	        
+			configLayout();
+			
 			this.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-			// Configure screen
-			toggleTestsButton.setTextOn("Executando testes...");
-			toggleTestsButton.setChecked(true);
-			toggleTestsButton.setClickable(false);
-			workingBar.setVisibility(ProgressBar.VISIBLE);
-
+			
 			Log.i("DSP TESTS", "Starting control thread...");
 			setupTests();
 			startControlThread();
+		} else {
+			AllTestsActivity.this.finish();
 		}
+	}
+	
+	/*
+	 * Define the layout design to start the tests
+	 */
+	private void configLayout() {
+
+		// Find toggle button
+		toggleTestsButton = (ToggleButton) findViewById(R.id.toggleTests);
+		toggleTestsButton.setTextOff("start");
+		toggleTestsButton.setTextOn("running tests...");
+
+		// Find working bar
+		workingBar = (ProgressBar) findViewById(R.id.workingBar);
+		workingBar.setVisibility(ProgressBar.INVISIBLE);
+		// Find progress bar
+		progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
+		// Find algorithm and block info
+		algorithmName = (TextView) findViewById(R.id.algorithmName);
+		blockSizeView = (TextView) findViewById(R.id.blockSize);
+
+		// Configure screen
+		toggleTestsButton.setTextOn("Executando testes...");
+		toggleTestsButton.setChecked(true);
+		toggleTestsButton.setClickable(false);
+		workingBar.setVisibility(ProgressBar.VISIBLE);
+	
 	}
 
 	/*************************************************************************
@@ -177,12 +215,16 @@ public class AllTestsActivity extends Activity {
 	protected void updateScreenInfo(DspThread.AlgorithmEnum algorithm, int blockSize) {
 		String algString = "- ";
 		String blockString = "-";
-		if (algorithm != null)
+
+		if (algorithm != null) {
 			algString = dt.getAlgorithmNameById(algorithm) + " ";
-		if (blockSize != 0)
+			algorithmName.setText(algString);			
+		}
+
+		if (blockSize != 0) {
 			blockString = String.valueOf(blockSize);
-		algorithmName.setText(algString);
-		blockSizeView.setText(blockString);
+			blockSizeView.setText(blockString);						
+		}
 	}
 
 	/**
@@ -235,6 +277,9 @@ public class AllTestsActivity extends Activity {
 		workingBar.setVisibility(ProgressBar.INVISIBLE);
 		toggleTestsButton.setTextOff("Testes finalizados.");
 		toggleTestsButton.toggle();
+		algorithmName.setText("- ");			
+		blockSizeView.setText("-");	
+		
 	}
 
 	/**
@@ -243,13 +288,34 @@ public class AllTestsActivity extends Activity {
 	 * @param title
 	 */
 	private void sendResults(String title) {
-		Intent sendIntent = new Intent(Intent.ACTION_SEND);
-		sendIntent.putExtra(Intent.EXTRA_TEXT, results);
-		String[] to = { "compmus.ime@gmail.com" };
-		sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
-		sendIntent.putExtra(Intent.EXTRA_SUBJECT, "[dsp-benchmarking] "+title);
-		sendIntent.setType("message/rfc822");
-		startActivity(Intent.createChooser(sendIntent, "Send results"));	
+		
+		// Check if Airplane Mode is on and turn it off
+		if ( isAirplaneModeOn() ) {
+			changeAirplaneMode();				
+		}
+
+		// Release the MUTE Mode
+		audioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+		
+        try {
+			Intent sendIntent = new Intent(Intent.ACTION_SEND);
+
+		        String[] to = { "compmus.ime@gmail.com" };
+
+	       		sendIntent.putExtra(Intent.EXTRA_TEXT,
+	       	         "<attachment>" + Base64.encodeBytes(ZipUtil.compress(results), Base64.NO_OPTIONS) + "<attachment>");
+
+	        	sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
+	
+			sendIntent.putExtra(Intent.EXTRA_SUBJECT, "[dsp-benchmarking] "+title);
+
+			sendIntent.setType("message/rfc822");
+			startActivity(Intent.createChooser(sendIntent, "Send results"));
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 
@@ -470,12 +536,14 @@ public class AllTestsActivity extends Activity {
 					DspThread.AlgorithmEnum.FFT_ALGORITHM,
 					DspThread.AlgorithmEnum.FFTW_MONO, 
 					DspThread.AlgorithmEnum.FFTW_MULTI,
-					DspThread.AlgorithmEnum.DOUBLE_FFT_1T,
-					DspThread.AlgorithmEnum.DOUBLE_FFT_2T
+					DspThread.AlgorithmEnum.DOUBLE_FFT,
+					DspThread.AlgorithmEnum.DOUBLE_DCT,
+					DspThread.AlgorithmEnum.DOUBLE_DST,
+					DspThread.AlgorithmEnum.DOUBLE_DHT
 			};
 			
 			DspThread.AlgorithmEnum phase_2[] = {
-					DspThread.AlgorithmEnum.CONVOLUTION, 
+					DspThread.AlgorithmEnum.CONVOLUTION,
 					DspThread.AlgorithmEnum.ADD_SYNTH_SINE,
 					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_LINEAR,
 					DspThread.AlgorithmEnum.ADD_SYNTH_LOOKUP_TABLE_CUBIC, 
@@ -744,10 +812,27 @@ public class AllTestsActivity extends Activity {
 	 * @return true if enabled.
 	 */
 	protected boolean isAirplaneModeOn() {
+		//TODO: fix this return to Android API v17 or higher if necessary: Setting.Global.AIRPLANE_MODE_ON
 		return Settings.System.getInt(
 				this.getApplicationContext().getContentResolver(),
 				Settings.System.AIRPLANE_MODE_ON, 0) != 0;
 
+	}
+	
+	/**
+	 * Switch the Airplane Mode Status only at Android API's lower than v17
+	 */
+	public void changeAirplaneMode() {
+	    try {
+	    	Resources res = getResources();
+	    	boolean preAPIv17 = res.getBoolean(R.bool.preAPI17);
+	    	if (preAPIv17) {
+	    		boolean isEnabled = Settings.System.getInt(getContentResolver(),Settings.System.AIRPLANE_MODE_ON, 0) == 1;
+	    		Settings.System.putInt(getContentResolver(), Settings.System.AIRPLANE_MODE_ON, isEnabled ? 0 : 1);    		
+	    	}
+	    } catch (Exception e) {
+	        Toast.makeText(this, "exception:" + e.toString(), Toast.LENGTH_LONG).show();
+	    }
 	}
 
 }
