@@ -8,7 +8,7 @@ passw = getpass.getpass()
 mail = imaplib.IMAP4_SSL("imap.gmail.com")
 mail.login(user, passw)
 
-mail.select("inbox")
+mail.select("resultados-enviados")
 
 result, data = mail.search(None, "ALL")
 
@@ -51,6 +51,7 @@ for vid in ids:
 
 							fp = open(name, "w")
 							fp.write(orig)
+							fp.flush()
 							fp.close()
 
 						except Exception as e:
