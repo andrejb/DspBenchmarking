@@ -31,7 +31,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-package br.usp.ime.dspbenchmarking.algorithms.jtransforms.fft;
+package br.usp.ime.dspbenchmarking.algorithms.jtransforms;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
