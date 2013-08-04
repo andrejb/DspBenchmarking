@@ -1,12 +1,15 @@
 package br.usp.ime.dspbenchmarking.activities;
 
 import java.io.IOException;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.media.AudioManager;
@@ -24,7 +27,7 @@ import android.widget.ToggleButton;
 import br.usp.ime.dspbenchmarking.DspBenchmarking;
 import br.usp.ime.dspbenchmarking.R;
 import br.usp.ime.dspbenchmarking.threads.DspThread;
-
+import br.usp.ime.dspbenchmarking.util.SystemInformation;
 import br.usp.ime.dspbenchmarking.util.ZipUtil;
 import br.usp.ime.dspbenchmarking.util.Base64;
 
@@ -53,7 +56,7 @@ import br.usp.ime.dspbenchmarking.util.Base64;
 public class AllTestsActivity extends Activity {
 
 	Context context;
-	
+
 	// Views
 	protected ToggleButton toggleTestsButton = null;
 	protected ProgressBar workingBar = null;
@@ -93,9 +96,9 @@ public class AllTestsActivity extends Activity {
 	protected DspThread dt;
 
 
-    // State of the device before executing the tests
-    private AudioManager audioManager;
-	
+	// State of the device before executing the tests
+	private AudioManager audioManager;
+
 
 	/*************************************************************************
 	 * Constructor
@@ -109,9 +112,9 @@ public class AllTestsActivity extends Activity {
 	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		
+
 		context = this;
-		
+
 		// Set the view
 		setContentView(R.layout.tests);
 		super.onCreate(savedInstanceState);
@@ -119,36 +122,32 @@ public class AllTestsActivity extends Activity {
 		// Check if the intent tells us that the tests should be run
 		boolean runTests = false;
 		if (savedInstanceState == null) {
-		    Bundle extras = getIntent().getExtras();
-		    if(extras != null)
-		        runTests = extras.getBoolean(MESSAGE_RUN_TESTS);
+			Bundle extras = getIntent().getExtras();
+			if(extras != null)
+				runTests = extras.getBoolean(MESSAGE_RUN_TESTS);
 		} else {
-		    runTests = savedInstanceState.getBoolean(MESSAGE_RUN_TESTS);
+			runTests = savedInstanceState.getBoolean(MESSAGE_RUN_TESTS);
 		}
 
 		// Start tests
 		if (runTests) {
 
-			// Check if the Airplane Mode is off, and turn it on
-	        if ( !isAirplaneModeOn() ) {
-	            changeAirplaneMode();
-	        }
+			audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+			audioManager.setStreamMute(AudioManager.STREAM_MUSIC, true);
 
-	        audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-	        audioManager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-	        
 			configLayout();
-			
+
 			this.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-			
+
 			Log.i("DSP TESTS", "Starting control thread...");
 			setupTests();
 			startControlThread();
 		} else {
 			AllTestsActivity.this.finish();
 		}
+
 	}
-	
+
 	/*
 	 * Define the layout design to start the tests
 	 */
@@ -174,7 +173,7 @@ public class AllTestsActivity extends Activity {
 		toggleTestsButton.setChecked(true);
 		toggleTestsButton.setClickable(false);
 		workingBar.setVisibility(ProgressBar.VISIBLE);
-	
+
 	}
 
 	/*************************************************************************
@@ -279,7 +278,7 @@ public class AllTestsActivity extends Activity {
 		toggleTestsButton.toggle();
 		algorithmName.setText("- ");			
 		blockSizeView.setText("-");	
-		
+
 	}
 
 	/**
@@ -288,25 +287,20 @@ public class AllTestsActivity extends Activity {
 	 * @param title
 	 */
 	private void sendResults(String title) {
-		
-		// Check if Airplane Mode is on and turn it off
-		if ( isAirplaneModeOn() ) {
-			changeAirplaneMode();				
-		}
 
 		// Release the MUTE Mode
 		audioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-		
-        try {
+
+		try {
 			Intent sendIntent = new Intent(Intent.ACTION_SEND);
 
-		        String[] to = { "compmus.ime@gmail.com" };
+			String[] to = { "compmus.ime@gmail.com" };
 
-	       		sendIntent.putExtra(Intent.EXTRA_TEXT,
-	       	         "<attachment>" + Base64.encodeBytes(ZipUtil.compress(results), Base64.NO_OPTIONS) + "<attachment>");
+			sendIntent.putExtra(Intent.EXTRA_TEXT,
+					"<attachment>" + Base64.encodeBytes(ZipUtil.compress(results), Base64.NO_OPTIONS) + "<attachment>");
 
-	        	sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
-	
+			sendIntent.putExtra(Intent.EXTRA_EMAIL, to);
+
 			sendIntent.putExtra(Intent.EXTRA_SUBJECT, "[dsp-benchmarking] "+title);
 
 			sendIntent.setType("message/rfc822");
@@ -416,7 +410,7 @@ public class AllTestsActivity extends Activity {
 		// add stress param
 		info += String.format("\t%d", stressParam);
 		// add airplane mode info
-		info += String.format("\t%d", this.isAirplaneModeOn() ? 1 : 0);
+		info += String.format("\t%d", SystemInformation.isAirplaneModeOn(this) ? 1 : 0); // TODO: maybe take this out from here?
 		// add test time
 		info += String.format("\t%5.2f\n", ((float)(totalTime - lastTotalTime)/ 1000));
 		lastTotalTime = totalTime;
@@ -524,12 +518,12 @@ public class AllTestsActivity extends Activity {
 
 			// keep track of time
 			long startTime = SystemClock.uptimeMillis();
-            int algorithm_count = 0;
+			int algorithm_count = 0;
 
 			/*************************************************************
 			 * Phase 1: Measurement of algorithm time.
 			 ************************************************************/
-			
+
 			DspThread.AlgorithmEnum phase_1[] = {
 					DspThread.AlgorithmEnum.LOOPBACK,
 					DspThread.AlgorithmEnum.REVERB,
@@ -541,7 +535,7 @@ public class AllTestsActivity extends Activity {
 					DspThread.AlgorithmEnum.DOUBLE_DST,
 					DspThread.AlgorithmEnum.DOUBLE_DHT
 			};
-			
+
 			DspThread.AlgorithmEnum phase_2[] = {
 					DspThread.AlgorithmEnum.CONVOLUTION,
 					DspThread.AlgorithmEnum.ADD_SYNTH_SINE,
@@ -562,11 +556,11 @@ public class AllTestsActivity extends Activity {
 				algorithm_count++;
 				for (int blockSize = START_BLOCK_SIZE; blockSize <= END_BLOCK_SIZE; blockSize *= 2) {	
 					Log.i("TESTS PHASE 1", "Starting test with block size " + blockSize+".");
-					
+
 					// Send message for starting a new test
 					if (controlThreadRunning)
 						sendMessage(MESSAGE_LAUNCH_TEST, blockSize, a, MAX_DSP_CYCLES, -1, -1);
-					
+
 					Log.i("TESTS PHASE 1", "Wait for test to end...");
 					// Wait for tests to end
 					while (controlThreadRunning && !dt.isSuspended())
@@ -639,7 +633,7 @@ public class AllTestsActivity extends Activity {
 							stressParam *= 2;
 						else
 							stressParam = (int) (m + ((double) (M-m) / 2));
-						
+
 						//===============================================
 						// run test
 						//===============================================
@@ -802,37 +796,6 @@ public class AllTestsActivity extends Activity {
 			alert.show();
 		} else
 			AllTestsActivity.this.finish();
-	}
-
-
-	/**
-	 * Get the state of Airplane Mode.
-	 *
-	 * @param context
-	 * @return true if enabled.
-	 */
-	protected boolean isAirplaneModeOn() {
-		//TODO: fix this return to Android API v17 or higher if necessary: Setting.Global.AIRPLANE_MODE_ON
-		return Settings.System.getInt(
-				this.getApplicationContext().getContentResolver(),
-				Settings.System.AIRPLANE_MODE_ON, 0) != 0;
-
-	}
-	
-	/**
-	 * Switch the Airplane Mode Status only at Android API's lower than v17
-	 */
-	public void changeAirplaneMode() {
-	    try {
-	    	Resources res = getResources();
-	    	boolean preAPIv17 = res.getBoolean(R.bool.preAPI17);
-	    	if (preAPIv17) {
-	    		boolean isEnabled = Settings.System.getInt(getContentResolver(),Settings.System.AIRPLANE_MODE_ON, 0) == 1;
-	    		Settings.System.putInt(getContentResolver(), Settings.System.AIRPLANE_MODE_ON, isEnabled ? 0 : 1);    		
-	    	}
-	    } catch (Exception e) {
-	        Toast.makeText(this, "exception:" + e.toString(), Toast.LENGTH_LONG).show();
-	    }
 	}
 
 }

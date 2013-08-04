@@ -9,14 +9,24 @@
         android:targetSdkVersion="18" />
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
-    <!--<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />-->
+    <!--
+        We would use WRITE_SETTINGS permission if we were to set airplane mode on older APIs, but
+		we decided that it is better to standardize behavior and let the user do it in order to
+		have more transparency and less need of permissions.
+    -->
+    <!-- <uses-permission android:name="android.permission.WRITE_SETTINGS" /> -->
+    <!--
+        We would use WRITE_EXTERNAL_STORAGE permission if we were to write the tests results in
+        the disk. That could be needed to send results as attachments, but we managed to include
+        them as inline compressed text in emails, so we do not need this anymore.
+    -->
+    <!-- <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> -->
 
     <application
         android:allowBackup="false"
+        android:debuggable="true"
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name"
-        android:debuggable="true" >
+        android:label="@string/app_name" >
 
         <!-- android:debuggable="true" -->
         <activity
@@ -29,7 +39,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
         <activity
             android:name="br.usp.ime.dspbenchmarking.activities.LiveActivity"
             android:screenOrientation="portrait" >
@@ -39,7 +48,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        
         <activity
             android:name="br.usp.ime.dspbenchmarking.activities.AllTestsActivity"
             android:screenOrientation="portrait" >

@@ -36,18 +36,18 @@
             android:onClick="startLiveActivity"
             android:text="@string/dsp" />
 
+        <TextView
+            android:id="@+id/textAirplaneMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/airplane_mode" />
+
         <Button
             android:id="@+id/buttonStartAllTestsActivity"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:onClick="startAllTestsActivity"
             android:text="@string/run_all_tests" />
-
-        <TextView
-            android:id="@+id/textAirplaneMode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/airplane_mode" />
     </LinearLayout>
 
 </ScrollView>

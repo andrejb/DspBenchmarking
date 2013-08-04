@@ -92,7 +92,7 @@
                 android:id="@+id/TextView01"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/eme" />
+                android:text="@string/m" />
 
             <TextView
                 android:id="@+id/eme"
@@ -115,7 +115,7 @@
                 android:id="@+id/textView6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/emao" />
+                android:text="@string/M" />
 
             <TextView
                 android:id="@+id/emao"
