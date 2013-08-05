@@ -64,8 +64,7 @@ public class DspBenchmarking extends Activity {
 		// Save this instance so we can later use to find out about airplane mode
 		final DspBenchmarking dspBenchmarking = this;
 
-		// Register to switch button state if flight mode is set
-		IntentFilter intentFilter = new IntentFilter("android.intent.action.SERVICE_STATE");
+		// Register to switch button state if flight mode, connectivity or wifi state changes.
 		BroadcastReceiver receiver = new BroadcastReceiver() {
 
 			@Override
@@ -81,8 +80,15 @@ public class DspBenchmarking extends Activity {
 				}
 			}
 		};
-		this.getApplicationContext().registerReceiver(receiver, intentFilter);	
-
+		String[] connectivityIntentList = {
+				"android.intent.action.SERVICE_STATE",
+				"android.net.conn.CONNECTIVITY_CHANGE",
+				"android.net.wifi.WIFI_STATE_CHANGED_ACTION",
+		};
+		for (int i = 0; i < connectivityIntentList.length; i++) {
+			IntentFilter intentFilter = new IntentFilter(connectivityIntentList[i]);
+			this.getApplicationContext().registerReceiver(receiver, intentFilter);
+		}
 	}
 
 	/**
