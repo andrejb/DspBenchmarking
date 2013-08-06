@@ -121,8 +121,9 @@ public class DspBenchmarking extends Activity {
 	 * @return
 	 */
 	private static boolean isReadyForRunningTests(Activity activity) {
-		return !SystemInformation.isWifiEnabled(activity)
+		/*return !SystemInformation.isWifiEnabled(activity)
 				&& !SystemInformation.isConnectedOrConnecting(activity)
-				&& SystemInformation.isAirplaneModeOn(activity);
+				&& SystemInformation.isAirplaneModeOn(activity);*/
+		return SystemInformation.isAirplaneModeOn(activity);
 	}
 }
