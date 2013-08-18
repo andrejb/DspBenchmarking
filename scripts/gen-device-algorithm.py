@@ -9,7 +9,8 @@ import tempfile
 
 RESULTS_DIR = './results'
 IMG_DIR = './img'
-DEVICE_NAME_IDX = 'incremental:'
+DEVICE_NAME_KEY = 'device:'
+SDK_KEY = 'sdk_int:'
 
 
 # iterate over result files
@@ -28,7 +29,7 @@ for filename in os.listdir(RESULTS_DIR):
             algs[m.groups(0)[0]] = m.groups(0)[1]
 
     # get device name
-    namere = re.compile("^#\s+%s\s+(.+)$" % DEVICE_NAME_IDX)
+    namere = re.compile("^#\s+%s\s+(.+)$" % DEVICE_NAME_KEY)
     devicename = ''
     for line in lines:
         m = namere.match(line)
